@@ -21,7 +21,7 @@ func _process(_delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_released("right_click"):
+	if event.is_action_released("click"):
 		for o in get_tree().get_nodes_in_group("sprite_outline"):
 			if o.get_rect().intersects(get_rect()):
 				o.select(true)

@@ -6,8 +6,6 @@ const Selection := preload("res://selection.tscn")
 const ZOOM_INTERVALS := [1.0/8, 1.0/4, 1.0/2, 1.0, 2.0, 4.0, 8.0]
 const CAM_LIM := 1_000
 
-var action := ""
-var path := ""
 var distance_between_tiles := 0
 var regions: Array
 var region_threads: Array
@@ -20,15 +18,23 @@ var x_size: int
 var y_size: int
 var size: Vector2
 var data: PoolByteArray
-var zoom := 4
+var zoom := 3
 var is_drawing := false
+var image_path: String
+var action := "edit_sprites"
 
-onready var sep := $Layout/HBoxContainer/Separate
-onready var xport := $Layout/HBoxContainer/Export
-onready var texture := $Layout/HB/VC/Viewport/TextureRect
-onready var cam := $Layout/HB/VC/Viewport/Camera2D
-onready var vc := $Layout/HB/VC
-onready var transparent := $Layout/HB/VC/Viewport/Transparent
+
+onready var file := $Layout/Buttons/File
+onready var sprite_button := $Layout/Buttons/Sprite
+onready var export_button := $Layout/Buttons/Export
+onready var background := $Layout/Main/VC/Viewport/Background
+onready var image_node := $Layout/Main/VC/Viewport/Image
+onready var cam := $Layout/Main/VC/Viewport/Camera2D
+onready var vc := $Layout/Main/VC
+onready var cut_rows := $Cut/VBox/Top/Rows
+onready var cut_cols := $Cut/VBox/Top/Columns
+onready var cut_y := $Cut/VBox/Bottom/YSize
+onready var cut_x := $Cut/VBox/Bottom/XSize
 
 
 func _ready() -> void:
@@ -38,6 +44,13 @@ func _ready() -> void:
 		sub_region_count = 4
 	else:
 		sub_region_count = 2
+	for child in $Layout/Buttons.get_children():
+		child.get_popup().connect("id_pressed", self, "on_menu_item_pressed", [child.name])
+	close_image()
+	for child in $Layout/Main/Sidebar.get_children():
+		child.connect("pressed", self, "on_sidebar_button_pressed", [child.get_index()])
+	for node in [cut_rows, cut_cols, cut_y, cut_x]:
+		node.connect("value_changed", self, "recalc_cut", [node.name])
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -48,7 +61,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("select_all"):
 		for node in get_tree().get_nodes_in_group("sprite_outline"):
 			node.select(true)
-	elif event.is_action_pressed("zoom_in") and texture.texture:
+	elif event.is_action_pressed("zoom_in") and image_node.texture:
 		zoom -= 1
 		if zoom < 0:
 			zoom = 0
@@ -56,7 +69,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
 		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom + 1])
 		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
-	elif event.is_action_pressed("zoom_out") and texture.texture:
+	elif event.is_action_pressed("zoom_out") and image_node.texture:
 		zoom += 1
 		if zoom > ZOOM_INTERVALS.size() - 1:
 			zoom = ZOOM_INTERVALS.size() - 1
@@ -64,28 +77,32 @@ func _unhandled_input(event: InputEvent) -> void:
 		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
 		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom - 1])
 		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
-		
-
-func _on_Separate_pressed() -> void:
-	action = "separate"
-	$FileDialog.mode = FileDialog.MODE_OPEN_FILE
-	$FileDialog.popup()
 
 
-func _on_FileDialog_file_selected(file_path: String) -> void:
-	path = file_path
+func _on_FileDialog_file_selected(path: String) -> void:
+	image_path = path
 	image = Image.new()
-	if image.load(file_path) != OK:
+	if image.load(path) != OK:
 		$Note.dialog_text = "Error loading image!"
 		$Note.popup()
 		return
-	match action:
-		"separate":
-			separate()
-
+	size = image.get_size()
+	for i in sprite_button.get_popup().get_item_count():
+		sprite_button.get_popup().set_item_disabled(i, false)
+	for i in export_button.get_popup().get_item_count():
+		export_button.get_popup().set_item_disabled(i, false)
+	file.get_popup().set_item_disabled(1, false)
+	var text := ImageTexture.new()
+	text.create_from_image(image, 0)
+	image_node.texture = text
+	background.show()
+	image_node.rect_position = -size / 2
+	background.rect_position = -size / 2
+	cut_y.max_value = size.y
+	cut_x.max_value = size.x
+	
 
 func separate() -> void:
-	_on_Close_pressed()
 	$Layout/ProgressBar.value = 0
 	all_boxes = []
 	y_size = ceil(float(image.get_height()) / sub_region_count)
@@ -93,7 +110,6 @@ func separate() -> void:
 	regions = []
 	region_threads = []
 	threads_finished = 0
-	size = image.get_size()
 	data = image.get_data()
 	for y in range(0, image.get_height(), y_size):
 		for x in range(0, image.get_width(), x_size):
@@ -177,9 +193,6 @@ func thread_done(i: int) -> void:
 	if threads_finished == region_threads.size():
 		combine_boxes()
 		display_sprites()
-		sep.disabled = false
-		xport.disabled = false
-		$Layout/HBoxContainer/Close.disabled = false
 
 
 func combine_boxes() -> void:
@@ -206,17 +219,11 @@ func combine_boxes() -> void:
 
 
 func display_sprites() -> void:
-	var text := ImageTexture.new()
-	text.create_from_image(image, 0)
-	texture.texture = text
-	transparent.show()
-	texture.rect_position = -size / 2
-	transparent.rect_position = -size / 2
 	for rect in all_boxes: 
 		var outline := SpriteOutline.instance()
-		texture.add_child(outline)
-		outline.parent_global_rect = Rect2(texture.rect_global_position, size)
-		outline.resize(rect.position + texture.rect_global_position, rect.size)
+		image_node.add_child(outline)
+		outline.parent_global_rect = Rect2(image_node.rect_global_position, size)
+		outline.resize(rect.position + image_node.rect_global_position, rect.size)
 
 
 func _exit_tree() -> void:
@@ -225,19 +232,14 @@ func _exit_tree() -> void:
 			thread.wait_to_finish()
 
 
-func _on_Export_pressed() -> void:
-	$FileDialog.mode = FileDialog.MODE_OPEN_DIR
-	$FileDialog.popup()
-
-
 func _on_FileDialog_dir_selected(dir: String) -> void:
-	var arr := path.get_file().split(".")
+	var arr := image_path.get_file().split(".")
 	arr.remove(arr.size() -1)
 	var image_name := arr.join(".")
 	var directory := Directory.new()
 	if not directory.dir_exists(dir + "/%s" % image_name):
 		directory.make_dir(dir + "/%s" % image_name)
-	for child in texture.get_children():
+	for child in image_node.get_children():
 		image.get_rect(child.get_rect()).save_png(dir + "/%s/%s.png" % [image_name, child.get_index()])
 
 
@@ -245,35 +247,41 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 	var mouse: Vector2 = (((get_global_mouse_position() - get_viewport().size / 2) * cam.zoom) + cam.position).snapped(Vector2.ONE)
 	if not Input.is_action_pressed("move") and event.is_action_released("click"):
 		is_drawing = false
+		if Input.is_action_pressed("shift"):
+			return
 		for button in get_tree().get_nodes_in_group("sprite_outline"):
 			if button.selected and not button.is_preview:
 				button.select(false)
-	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("click") and texture.texture and texture.get_global_rect().has_point(mouse):
-		is_drawing = true
-		for button in get_tree().get_nodes_in_group("sprite_outline"):
-			if button.selected:
-				button.select(false)
-		var outline := SpriteOutline.instance()
-		texture.add_child(outline)
-		outline.parent_global_rect = Rect2(texture.rect_global_position, size)
-		outline.resize(mouse - (vc.rect_global_position) * cam.zoom, Vector2.ONE)
-		outline.preview_start = mouse - (vc.rect_global_position) * cam.zoom
-		outline.set_preview(true)
-		outline.select(true)
-	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("right_click") and texture.texture and texture.get_global_rect().has_point(mouse):
-		is_drawing = true
-		for button in get_tree().get_nodes_in_group("sprite_outline"):
-			if button.selected:
-				button.select(false)
-		var s := Selection.instance()
-		texture.add_child(s)
-		s.parent_global_rect = Rect2(texture.rect_global_position, size)
-		s.resize(mouse, Vector2.ONE)
-		s.preview_start = mouse - vc.rect_global_position * cam.zoom
-	elif Input.is_action_pressed("move") and event is InputEventMouseMotion and texture.texture:
+	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("click") and image_node.texture and image_node.get_global_rect().has_point(mouse):
+		match action:
+			"edit_sprites":
+				is_drawing = true
+				for button in get_tree().get_nodes_in_group("sprite_outline"):
+					if button.selected:
+						button.select(false)
+				var outline := SpriteOutline.instance()
+				image_node.add_child(outline)
+				outline.parent_global_rect = Rect2(image_node.rect_global_position, size)
+				outline.resize(mouse - (vc.rect_global_position) * cam.zoom, Vector2.ONE)
+				outline.preview_start = mouse - (vc.rect_global_position) * cam.zoom
+				outline.set_preview(true)
+				outline.select(true)
+			"select_sprites":
+				is_drawing = true
+				var s := Selection.instance()
+				image_node.add_child(s)
+				s.parent_global_rect = Rect2(image_node.rect_global_position, size)
+				s.resize(mouse, Vector2.ONE)
+				s.preview_start = mouse - vc.rect_global_position * cam.zoom
+				if Input.is_action_pressed("shift"):
+					return
+				for button in get_tree().get_nodes_in_group("sprite_outline"):
+					if button.selected:
+						button.select(false)
+	elif Input.is_action_pressed("move") and event is InputEventMouseMotion and image_node.texture:
 		cam.position -= event.relative
 		cam.position = cam.position.limit_length(CAM_LIM)
-	elif event.is_action_pressed("zoom_in") and texture.texture:
+	elif event.is_action_pressed("zoom_in") and image_node.texture:
 		zoom -= 1
 		if zoom < 0:
 			zoom = 0
@@ -281,7 +289,7 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
 		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom + 1])
 		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
-	elif event.is_action_pressed("zoom_out") and texture.texture:
+	elif event.is_action_pressed("zoom_out") and image_node.texture:
 		zoom += 1
 		if zoom > ZOOM_INTERVALS.size() - 1:
 			zoom = ZOOM_INTERVALS.size() - 1
@@ -296,7 +304,7 @@ func _on_Help_pressed() -> void:
 
 
 func _on_TextureRect_resized() -> void:
-	transparent.rect_size = texture.rect_size
+	background.rect_size = image_node.rect_size
 
 
 func _on_Credits_pressed() -> void:
@@ -307,11 +315,66 @@ func _on_Label_meta_clicked(meta) -> void:
 	OS.shell_open(meta)
 
 
-func _on_Close_pressed() -> void:
-	$Layout/HBoxContainer/Close.disabled = true
-	transparent.hide()
-	xport.disabled = true
-	sep.disabled = true
-	for child in texture.get_children():
+func close_image() -> void:
+	background.hide()
+	for i in sprite_button.get_popup().get_item_count():
+		sprite_button.get_popup().set_item_disabled(i, true)
+	for i in export_button.get_popup().get_item_count():
+		export_button.get_popup().set_item_disabled(i, true)
+	file.get_popup().set_item_disabled(1, true)
+	for child in image_node.get_children():
 		child.queue_free()
-	texture.texture = null
+	image_node.texture = null
+
+
+func on_menu_item_pressed(id: int, group: String) -> void:
+	match group:
+		"File":
+			match id:
+				0:
+					$FileDialog.mode = FileDialog.MODE_OPEN_FILE
+					$FileDialog.popup()
+				1:
+					close_image()
+		"Sprite":
+			match id:
+				0:
+					$Cut.popup()
+				1:
+					separate()
+		"Export":
+			match id:
+				0:
+					$FileDialog.mode = FileDialog.MODE_OPEN_DIR
+					$FileDialog.popup()
+		"Help":
+			match id:
+				0:
+					$Help.popup()
+				1:
+					$Credits.popup()
+
+
+func on_sidebar_button_pressed(i: int) -> void:
+	match i:
+		0:
+			action = "edit_sprites"
+		1:
+			action = "select_sprites"
+
+
+func _on_CutOk_pressed() -> void:
+	$Cut.hide()
+	
+
+
+func recalc_cut(value: float, node: String) -> void:
+	match node:
+		"Rows":
+			cut_y.value = int(size.y / value)
+		"Columns":
+			cut_x.value = int(size.x / value)
+		"YSize":
+			cut_rows.value = int(size.y / value)
+		"XSize":
+			cut_cols.value = int(size.x / value)

@@ -95,6 +95,8 @@ func resize(global_position: Vector2, size: Vector2) -> void:
 
 
 func on_edge_button_down(edge: Button) -> void:
+	if get_tree().current_scene.action != "edit_sprites":
+		return
 	if Input.is_action_pressed("move"):
 		return
 	set_process(true)
