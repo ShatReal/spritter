@@ -35,6 +35,7 @@ onready var cut_rows := $Cut/VBox/Top/Rows
 onready var cut_cols := $Cut/VBox/Top/Columns
 onready var cut_y := $Cut/VBox/Bottom/YSize
 onready var cut_x := $Cut/VBox/Bottom/XSize
+onready var viewport := $Layout/Main/VC/Viewport
 
 
 func _ready() -> void:
@@ -84,6 +85,7 @@ func _on_FileDialog_file_selected(path: String) -> void:
 	image = Image.new()
 	if image.load(path) != OK:
 		$Note.dialog_text = "Error loading image!"
+		viewport.gui_disable_input = true
 		$Note.popup()
 		return
 	size = image.get_size()
@@ -100,6 +102,8 @@ func _on_FileDialog_file_selected(path: String) -> void:
 	background.rect_position = -size / 2
 	cut_y.max_value = size.y
 	cut_x.max_value = size.x
+	recalc_cut(cut_rows.value, "Rows")
+	recalc_cut(cut_cols.value, "Columns")
 	
 
 func separate() -> void:
@@ -244,7 +248,7 @@ func _on_FileDialog_dir_selected(dir: String) -> void:
 
 
 func outside_sprite_gui_input(event: InputEvent) -> void:
-	var mouse: Vector2 = (((get_global_mouse_position() - get_viewport().size / 2) * cam.zoom) + cam.position).snapped(Vector2.ONE)
+	var mouse: Vector2 = (((get_global_mouse_position() - viewport.size / 2 - vc.rect_global_position) * cam.zoom) + cam.position).snapped(Vector2.ONE)
 	if not Input.is_action_pressed("move") and event.is_action_released("click"):
 		is_drawing = false
 		if Input.is_action_pressed("shift"):
@@ -262,8 +266,8 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 				var outline := SpriteOutline.instance()
 				image_node.add_child(outline)
 				outline.parent_global_rect = Rect2(image_node.rect_global_position, size)
-				outline.resize(mouse - (vc.rect_global_position) * cam.zoom, Vector2.ONE)
-				outline.preview_start = mouse - (vc.rect_global_position) * cam.zoom
+				outline.resize(mouse, Vector2.ONE)
+				outline.preview_start = mouse
 				outline.set_preview(true)
 				outline.select(true)
 			"select_sprites":
@@ -272,7 +276,7 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 				image_node.add_child(s)
 				s.parent_global_rect = Rect2(image_node.rect_global_position, size)
 				s.resize(mouse, Vector2.ONE)
-				s.preview_start = mouse - vc.rect_global_position * cam.zoom
+				s.preview_start = mouse
 				if Input.is_action_pressed("shift"):
 					return
 				for button in get_tree().get_nodes_in_group("sprite_outline"):
@@ -297,18 +301,10 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
 		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom - 1])
 		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
-		
-
-func _on_Help_pressed() -> void: 
-	$Help.popup_centered()
 
 
 func _on_TextureRect_resized() -> void:
 	background.rect_size = image_node.rect_size
-
-
-func _on_Credits_pressed() -> void:
-	$Credits.popup()
 
 
 func _on_Label_meta_clicked(meta) -> void:
@@ -332,6 +328,7 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 		"File":
 			match id:
 				0:
+					viewport.gui_disable_input = true
 					$FileDialog.mode = FileDialog.MODE_OPEN_FILE
 					$FileDialog.popup()
 				1:
@@ -339,19 +336,23 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 		"Sprite":
 			match id:
 				0:
+					viewport.gui_disable_input = true
 					$Cut.popup()
 				1:
 					separate()
 		"Export":
 			match id:
 				0:
+					viewport.gui_disable_input = true
 					$FileDialog.mode = FileDialog.MODE_OPEN_DIR
 					$FileDialog.popup()
 		"Help":
 			match id:
 				0:
+					viewport.gui_disable_input = true
 					$Help.popup()
 				1:
+					viewport.gui_disable_input = true
 					$Credits.popup()
 
 
@@ -365,7 +366,11 @@ func on_sidebar_button_pressed(i: int) -> void:
 
 func _on_CutOk_pressed() -> void:
 	$Cut.hide()
-	
+	all_boxes = []
+	for y in range(0, size.y, cut_y.value):
+		for x in range(0, size.x, cut_x.value):
+			all_boxes.append(Rect2(x, y, cut_x.value, cut_y.value))
+	display_sprites()
 
 
 func recalc_cut(value: float, node: String) -> void:
@@ -378,3 +383,7 @@ func recalc_cut(value: float, node: String) -> void:
 			cut_rows.value = int(size.y / value)
 		"XSize":
 			cut_cols.value = int(size.x / value)
+
+
+func on_popup_hide() -> void:
+	viewport.gui_disable_input = false

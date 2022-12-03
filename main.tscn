@@ -223,81 +223,87 @@ rect_min_size = Vector2( 400, 300 )
 [node name="VBox" type="VBoxContainer" parent="Cut"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 4.0
+margin_right = -4.0
+margin_bottom = -4.0
 alignment = 1
 
 [node name="Top" type="HBoxContainer" parent="Cut/VBox"]
-margin_top = 112.0
-margin_right = 400.0
-margin_bottom = 136.0
+margin_top = 108.0
+margin_right = 392.0
+margin_bottom = 132.0
 alignment = 1
 
 [node name="Label" type="Label" parent="Cut/VBox/Top"]
-margin_left = 75.0
+margin_left = 71.0
 margin_top = 5.0
-margin_right = 108.0
+margin_right = 104.0
 margin_bottom = 19.0
 text = "Rows"
 
 [node name="Rows" type="SpinBox" parent="Cut/VBox/Top"]
-margin_left = 112.0
-margin_right = 186.0
+margin_left = 108.0
+margin_right = 182.0
 margin_bottom = 24.0
 min_value = 1.0
+max_value = 10000.0
 value = 1.0
 
 [node name="Label2" type="Label" parent="Cut/VBox/Top"]
-margin_left = 190.0
+margin_left = 186.0
 margin_top = 5.0
-margin_right = 246.0
+margin_right = 242.0
 margin_bottom = 19.0
 text = "Columns"
 
 [node name="Columns" type="SpinBox" parent="Cut/VBox/Top"]
-margin_left = 250.0
-margin_right = 324.0
+margin_left = 246.0
+margin_right = 320.0
 margin_bottom = 24.0
 min_value = 1.0
+max_value = 10000.0
 value = 1.0
 
 [node name="Bottom" type="HBoxContainer" parent="Cut/VBox"]
-margin_top = 140.0
-margin_right = 400.0
-margin_bottom = 164.0
+margin_top = 136.0
+margin_right = 392.0
+margin_bottom = 160.0
 alignment = 1
 
 [node name="Label" type="Label" parent="Cut/VBox/Bottom"]
-margin_left = 81.0
+margin_left = 77.0
 margin_top = 5.0
-margin_right = 119.0
+margin_right = 115.0
 margin_bottom = 19.0
 text = "Y-size"
 
 [node name="YSize" type="SpinBox" parent="Cut/VBox/Bottom"]
-margin_left = 123.0
-margin_right = 197.0
+margin_left = 119.0
+margin_right = 193.0
 margin_bottom = 24.0
 min_value = 1.0
 value = 1.0
 
 [node name="Label2" type="Label" parent="Cut/VBox/Bottom"]
-margin_left = 201.0
+margin_left = 197.0
 margin_top = 5.0
-margin_right = 240.0
+margin_right = 236.0
 margin_bottom = 19.0
 text = "X-size"
 
 [node name="XSize" type="SpinBox" parent="Cut/VBox/Bottom"]
-margin_left = 244.0
-margin_right = 318.0
+margin_left = 240.0
+margin_right = 314.0
 margin_bottom = 24.0
 min_value = 1.0
 value = 1.0
 
 [node name="CutOk" type="Button" parent="Cut/VBox"]
-margin_left = 185.0
-margin_top = 168.0
-margin_right = 215.0
-margin_bottom = 188.0
+margin_left = 181.0
+margin_top = 164.0
+margin_right = 211.0
+margin_bottom = 184.0
 size_flags_horizontal = 4
 text = "Ok"
 
@@ -306,5 +312,10 @@ text = "Ok"
 [connection signal="resized" from="Layout/Main/VC/Viewport/Image" to="." method="_on_TextureRect_resized"]
 [connection signal="dir_selected" from="FileDialog" to="." method="_on_FileDialog_dir_selected"]
 [connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
+[connection signal="popup_hide" from="FileDialog" to="." method="on_popup_hide"]
+[connection signal="popup_hide" from="Note" to="." method="on_popup_hide"]
+[connection signal="popup_hide" from="Help" to="." method="on_popup_hide"]
+[connection signal="popup_hide" from="Credits" to="." method="on_popup_hide"]
 [connection signal="meta_clicked" from="Credits/Label" to="." method="_on_Label_meta_clicked"]
+[connection signal="popup_hide" from="Cut" to="." method="on_popup_hide"]
 [connection signal="pressed" from="Cut/VBox/CutOk" to="." method="_on_CutOk_pressed"]
