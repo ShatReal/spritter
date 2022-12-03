@@ -167,5 +167,4 @@ keep_pressed_outside = true
 
 [connection signal="button_down" from="." to="." method="_on_SpriteOutline_button_down"]
 [connection signal="button_up" from="." to="." method="_on_SpriteOutline_button_up"]
-[connection signal="gui_input" from="." to="." method="_on_SpriteOutline_gui_input"]
 [connection signal="pressed" from="." to="." method="_on_SpriteOutline_pressed"]

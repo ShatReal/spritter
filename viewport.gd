@@ -1,4 +1,4 @@
 extends Viewport
 
-func _input(event: InputEvent) -> void:
-	get_tree().current_scene._input(event)
+func _unhandled_input(event: InputEvent) -> void:
+	get_tree().current_scene._unhandled_input(event)

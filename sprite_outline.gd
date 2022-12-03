@@ -25,6 +25,19 @@ func _input(event: InputEvent) -> void:
 		set_process(false)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if not selected:
+		return
+	if event.is_action_pressed("ui_left"):
+		resize(rect_global_position + Vector2.LEFT, rect_size)
+	elif event.is_action_pressed("ui_right"):
+		resize(rect_global_position + Vector2.RIGHT, rect_size)
+	elif event.is_action_pressed("ui_up"):
+		resize(rect_global_position + Vector2.UP, rect_size)
+	elif event.is_action_pressed("ui_down"):
+		resize(rect_global_position + Vector2.DOWN, rect_size)
+
+
 func _process(_delta: float) -> void:
 	var mouse: Vector2 = (get_global_mouse_position()).snapped(Vector2.ONE)
 	if is_preview:
@@ -82,7 +95,7 @@ func resize(global_position: Vector2, size: Vector2) -> void:
 
 
 func on_edge_button_down(edge: Button) -> void:
-	if Input.is_action_pressed("ui_select"):
+	if Input.is_action_pressed("move"):
 		return
 	set_process(true)
 	selected_button = edge
@@ -111,7 +124,7 @@ func select(on: bool) -> void:
 
 
 func _on_SpriteOutline_button_down() -> void:
-	if Input.is_action_pressed("ui_select"):
+	if Input.is_action_pressed("move"):
 		return
 	if selected:
 		set_process(true)
@@ -126,7 +139,7 @@ func _on_SpriteOutline_button_up() -> void:
 
 
 func _on_SpriteOutline_pressed() -> void:
-	if Input.is_action_pressed("ui_select"):
+	if Input.is_action_pressed("move"):
 		return
 	if not is_moving:
 		if not Input.is_action_pressed("shift"):
@@ -143,11 +156,6 @@ func set_preview(on: bool) -> void:
 	set_process(on)
 
 
-func _on_SpriteOutline_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
-		get_tree().current_scene.outside_sprite_gui_input(event)
-
-
 func on_edge_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseMotion and not Input.is_action_pressed("click"):
 		get_tree().current_scene.outside_sprite_gui_input(event)

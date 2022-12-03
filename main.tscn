@@ -37,47 +37,74 @@ focus_mode = 0
 disabled = true
 text = "Export Images"
 
-[node name="Help" type="Button" parent="Layout/HBoxContainer"]
+[node name="Close" type="Button" parent="Layout/HBoxContainer"]
 margin_left = 235.0
-margin_right = 277.0
+margin_right = 359.0
+margin_bottom = 20.0
+disabled = true
+text = "Close Spritesheet"
+
+[node name="Help" type="Button" parent="Layout/HBoxContainer"]
+margin_left = 363.0
+margin_right = 405.0
 margin_bottom = 20.0
 focus_mode = 0
 text = "Help"
 
 [node name="Credits" type="Button" parent="Layout/HBoxContainer"]
-margin_left = 281.0
-margin_right = 338.0
+margin_left = 409.0
+margin_right = 466.0
 margin_bottom = 20.0
 focus_mode = 0
 text = "Credits"
 
-[node name="VC" type="ViewportContainer" parent="Layout"]
+[node name="HB" type="HBoxContainer" parent="Layout"]
 margin_top = 24.0
 margin_right = 1024.0
-margin_bottom = 582.0
+margin_bottom = 564.0
+size_flags_vertical = 3
+
+[node name="VC" type="ViewportContainer" parent="Layout/HB"]
+margin_right = 1020.0
+margin_bottom = 540.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 stretch = true
 
-[node name="Viewport" type="Viewport" parent="Layout/VC"]
-size = Vector2( 1024, 558 )
+[node name="Viewport" type="Viewport" parent="Layout/HB/VC"]
+size = Vector2( 1020, 540 )
 handle_input_locally = false
 usage = 0
 render_target_update_mode = 3
 script = ExtResource( 2 )
 
-[node name="Transparent" type="TextureRect" parent="Layout/VC/Viewport"]
+[node name="Transparent" type="TextureRect" parent="Layout/HB/VC/Viewport"]
 visible = false
 margin_right = 40.0
 margin_bottom = 40.0
 texture = ExtResource( 3 )
 stretch_mode = 2
 
-[node name="TextureRect" type="TextureRect" parent="Layout/VC/Viewport"]
+[node name="TextureRect" type="TextureRect" parent="Layout/HB/VC/Viewport"]
 mouse_filter = 0
 
-[node name="Camera2D" type="Camera2D" parent="Layout/VC/Viewport"]
+[node name="Camera2D" type="Camera2D" parent="Layout/HB/VC/Viewport"]
 current = true
+
+[node name="Buttons" type="VBoxContainer" parent="Layout/HB"]
+margin_left = 1024.0
+margin_right = 1024.0
+margin_bottom = 540.0
+
+[node name="Bottom" type="HBoxContainer" parent="Layout"]
+margin_top = 568.0
+margin_right = 1024.0
+margin_bottom = 582.0
+
+[node name="Zoom" type="Label" parent="Layout/Bottom"]
+margin_right = 40.0
+margin_bottom = 14.0
+text = "100% "
 
 [node name="ProgressBar" type="ProgressBar" parent="Layout"]
 margin_top = 586.0
@@ -125,10 +152,14 @@ rect_min_size = Vector2( 400, 300 )
 [node name="Label" type="Label" parent="Help"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 4.0
+margin_right = -4.0
+margin_bottom = -4.0
 text = "Left click and drag to make a new sprite
 Right click and drag to select sprites
 Delete or backspace to delete selected sprites
-Space and click to move around
+Space or middle mouse to move around
 Shift click to select multiple sprites at once"
 align = 1
 valign = 1
@@ -166,11 +197,12 @@ Based on code from Alferd Spritesheet Unpacker"
 
 [connection signal="pressed" from="Layout/HBoxContainer/Separate" to="." method="_on_Separate_pressed"]
 [connection signal="pressed" from="Layout/HBoxContainer/Export" to="." method="_on_Export_pressed"]
+[connection signal="pressed" from="Layout/HBoxContainer/Close" to="." method="_on_Close_pressed"]
 [connection signal="pressed" from="Layout/HBoxContainer/Help" to="." method="_on_Help_pressed"]
 [connection signal="pressed" from="Layout/HBoxContainer/Credits" to="." method="_on_Credits_pressed"]
-[connection signal="gui_input" from="Layout/VC" to="." method="outside_sprite_gui_input"]
-[connection signal="gui_input" from="Layout/VC/Viewport/TextureRect" to="." method="outside_sprite_gui_input"]
-[connection signal="resized" from="Layout/VC/Viewport/TextureRect" to="." method="_on_TextureRect_resized"]
+[connection signal="gui_input" from="Layout/HB/VC" to="." method="outside_sprite_gui_input"]
+[connection signal="gui_input" from="Layout/HB/VC/Viewport/TextureRect" to="." method="outside_sprite_gui_input"]
+[connection signal="resized" from="Layout/HB/VC/Viewport/TextureRect" to="." method="_on_TextureRect_resized"]
 [connection signal="dir_selected" from="FileDialog" to="." method="_on_FileDialog_dir_selected"]
 [connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
 [connection signal="meta_clicked" from="Credits/Label" to="." method="_on_Label_meta_clicked"]

@@ -3,7 +3,7 @@ extends Control
 
 const SpriteOutline := preload("res://sprite_outline.tscn")
 const Selection := preload("res://selection.tscn")
-const ZOOM_INTERVALS := [0.1, 0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0, 8.0]
+const ZOOM_INTERVALS := [1.0/8, 1.0/4, 1.0/2, 1.0, 2.0, 4.0, 8.0]
 const CAM_LIM := 1_000
 
 var action := ""
@@ -25,10 +25,10 @@ var is_drawing := false
 
 onready var sep := $Layout/HBoxContainer/Separate
 onready var xport := $Layout/HBoxContainer/Export
-onready var texture := $Layout/VC/Viewport/TextureRect
-onready var cam := $Layout/VC/Viewport/Camera2D
-onready var vc := $Layout/VC
-onready var transparent := $Layout/VC/Viewport/Transparent
+onready var texture := $Layout/HB/VC/Viewport/TextureRect
+onready var cam := $Layout/HB/VC/Viewport/Camera2D
+onready var vc := $Layout/HB/VC
+onready var transparent := $Layout/HB/VC/Viewport/Transparent
 
 
 func _ready() -> void:
@@ -40,26 +40,31 @@ func _ready() -> void:
 		sub_region_count = 2
 
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("delete"):
 		for button in get_tree().get_nodes_in_group("sprite_outline"):
 			if button.selected:
 				button.queue_free()
+	elif event.is_action_pressed("select_all"):
+		for node in get_tree().get_nodes_in_group("sprite_outline"):
+			node.select(true)
 	elif event.is_action_pressed("zoom_in") and texture.texture:
 		zoom -= 1
 		if zoom < 0:
 			zoom = 0
 			return
 		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		cam.position += cam.get_local_mouse_position() * cam.zoom
+		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom + 1])
+		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
 	elif event.is_action_pressed("zoom_out") and texture.texture:
 		zoom += 1
 		if zoom > ZOOM_INTERVALS.size() - 1:
 			zoom = ZOOM_INTERVALS.size() - 1
 			return
 		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		cam.position += cam.get_local_mouse_position() * cam.zoom
-
+		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom - 1])
+		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
+		
 
 func _on_Separate_pressed() -> void:
 	action = "separate"
@@ -80,12 +85,7 @@ func _on_FileDialog_file_selected(file_path: String) -> void:
 
 
 func separate() -> void:
-	transparent.hide()
-	xport.disabled = true
-	sep.disabled = true
-	for child in texture.get_children():
-		child.queue_free()
-	texture.texture = null
+	_on_Close_pressed()
 	$Layout/ProgressBar.value = 0
 	all_boxes = []
 	y_size = ceil(float(image.get_height()) / sub_region_count)
@@ -108,67 +108,68 @@ func separate() -> void:
 func flood_region(i: int) -> Array:
 	var not_alpha := {}
 	var rects := []
-	var image_dict = {}
-	for y in [regions[i].position.y - 1, regions[i].end.y]:
-		for x in [regions[i].position.x - 1, regions[i].end.x]:
-			image_dict[Vector2(x, y)] = 0
 	for y in range(regions[i].position.y, regions[i].end.y):
-		image_dict[Vector2(regions[i].position.x - 1, y)] = 0
-		image_dict[Vector2(regions[i].end.x, y)] = 0
 		for x in range(regions[i].position.x, regions[i].end.x):
-			var a := data[x * 4 + y * size.x * 4 + 3]
-			image_dict[Vector2(x, y)] = a
-			image_dict[Vector2(x, regions[i].position.y - 1)] = 0
-			image_dict[Vector2(x, regions[i].end.y)] = 0
+			var a: int = data[x * 4 + y * size.x * 4 + 3]
 			if a != 0:
 				not_alpha[Vector2(x, y)] = a
 	while not not_alpha.empty():
-		var pixel: Vector2 = not_alpha.keys()[0]
-		not_alpha.erase(pixel)
-		var rect := Rect2(pixel, Vector2.ONE)
-		var is_clear := false
-		while not is_clear:
-			rect = grow_rect(rect, image_dict)
-			is_clear = clear(rect, not_alpha, image_dict)
-		rect = Rect2(rect.position + Vector2.ONE, rect.size - Vector2.ONE)
-		rects.append(rect)
+		rects.append(find_extents(not_alpha.keys()[0], not_alpha))
 	call_deferred("thread_done", i)
 	return rects
 
 
-func clear(rect: Rect2, not_alpha: Dictionary, image_dict: Dictionary) -> bool:
-	var result := true
-	for x in range(rect.position.x, rect.end.x):
-		if image_dict[Vector2(x, rect.position.y)] != 0:
-			not_alpha.erase(Vector2(x, rect.position.y))
-			result = false
-		if image_dict[Vector2(x, rect.end.y)] != 0:
-			not_alpha.erase(Vector2(x, rect.end.y))
-			result = false
-	for y in range(rect.position.y, rect.end.y):
-		if image_dict[Vector2(rect.position.x, y)] != 0:
-			not_alpha.erase(Vector2(rect.position.x, y))
-			result = false
-		if image_dict[Vector2(rect.end.x, y)] != 0:
-			not_alpha.erase(Vector2(rect.end.x, y))
-			result = false
-	return result
+func find_extents(p: Vector2, not_alpha: Dictionary) -> Rect2:
+	var r := Rect2(p - Vector2.ONE, Vector2.ONE * 2)
+	while not is_rect_clear(r, not_alpha):
+		r = grow_rect(r, not_alpha)
+	r = Rect2(r.position + Vector2.ONE, r.size - Vector2.ONE)
+	for key in not_alpha.keys():
+		if r.has_point(key):
+			not_alpha.erase(key)
+	return r
 
 
-func grow_rect(rect: Rect2, image_dict: Dictionary) -> Rect2:
-	for x in range(rect.position.x, rect.end.x):
-		if image_dict[Vector2(x, rect.position.y)] != 0:
-			return Rect2(rect.position + Vector2.UP, rect.size + Vector2.DOWN)
-		if image_dict[Vector2(x, rect.end.y)] != 0:
-			return Rect2(rect.position, rect.size + Vector2.DOWN)
-	for y in range(rect.position.y, rect.end.y):
-		if image_dict[Vector2(rect.position.x, y)] != 0:
-			return Rect2(rect.position + Vector2.LEFT, rect.size + Vector2.RIGHT)
-		if image_dict[Vector2(rect.end.x, y)] != 0:
-			return Rect2(rect.position, rect.size + Vector2.RIGHT)
-	return rect
-		
+func is_rect_clear(r: Rect2, not_alpha: Dictionary) -> bool:
+	for x in r.size.x:
+		if top_row(r, x, not_alpha) or bot_row(r, x, not_alpha):
+			return false
+	for y in r.size.y:
+		if lef_col(r, y, not_alpha) or rig_col(r, y, not_alpha):
+			return false
+	return true
 
+
+func grow_rect(r: Rect2, not_alpha: Dictionary) -> Rect2:
+	for x in r.size.x:
+		while top_row(r, x, not_alpha):
+			r = Rect2(r.position + Vector2.UP, r.size + Vector2.DOWN)
+		while bot_row(r, x, not_alpha):
+			r = Rect2(r.position, r.size + Vector2.DOWN)
+	for y in r.size.y:
+		while lef_col(r, y, not_alpha):
+			r = Rect2(r.position + Vector2.LEFT, r.size + Vector2.RIGHT)
+		while rig_col(r, y, not_alpha):
+			r = Rect2(r.position, r.size + Vector2.RIGHT)
+	return r
+
+
+func top_row(r: Rect2, x: int, not_alpha: Dictionary) -> bool:
+	return not_alpha.has(Vector2(r.position.x + x, r.position.y))
+
+
+func bot_row(r: Rect2, x: int, not_alpha: Dictionary) -> bool:
+	return not_alpha.has(Vector2(r.position.x + x, r.end.y))
+
+
+func lef_col(r: Rect2, y: int, not_alpha: Dictionary) -> bool:
+	return not_alpha.has(Vector2(r.position.x, r.position.y + y))
+	
+
+func rig_col(r: Rect2, y: int, not_alpha: Dictionary) -> bool:
+	return not_alpha.has(Vector2(r.end.x, r.position.y + y))
+	
+	
 func thread_done(i: int) -> void:
 	all_boxes.append_array(region_threads[i].wait_to_finish())
 	threads_finished += 1
@@ -178,6 +179,7 @@ func thread_done(i: int) -> void:
 		display_sprites()
 		sep.disabled = false
 		xport.disabled = false
+		$Layout/HBoxContainer/Close.disabled = false
 
 
 func combine_boxes() -> void:
@@ -241,12 +243,12 @@ func _on_FileDialog_dir_selected(dir: String) -> void:
 
 func outside_sprite_gui_input(event: InputEvent) -> void:
 	var mouse: Vector2 = (((get_global_mouse_position() - get_viewport().size / 2) * cam.zoom) + cam.position).snapped(Vector2.ONE)
-	if not Input.is_action_pressed("ui_select") and event.is_action_released("click"):
+	if not Input.is_action_pressed("move") and event.is_action_released("click"):
 		is_drawing = false
 		for button in get_tree().get_nodes_in_group("sprite_outline"):
 			if button.selected and not button.is_preview:
 				button.select(false)
-	elif not Input.is_action_pressed("ui_select") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("click") and texture.texture and texture.get_global_rect().has_point(mouse):
+	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("click") and texture.texture and texture.get_global_rect().has_point(mouse):
 		is_drawing = true
 		for button in get_tree().get_nodes_in_group("sprite_outline"):
 			if button.selected:
@@ -258,7 +260,7 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 		outline.preview_start = mouse - (vc.rect_global_position) * cam.zoom
 		outline.set_preview(true)
 		outline.select(true)
-	elif not Input.is_action_pressed("ui_select") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("right_click") and texture.texture and texture.get_global_rect().has_point(mouse):
+	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("right_click") and texture.texture and texture.get_global_rect().has_point(mouse):
 		is_drawing = true
 		for button in get_tree().get_nodes_in_group("sprite_outline"):
 			if button.selected:
@@ -268,10 +270,26 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 		s.parent_global_rect = Rect2(texture.rect_global_position, size)
 		s.resize(mouse, Vector2.ONE)
 		s.preview_start = mouse - vc.rect_global_position * cam.zoom
-	elif Input.is_action_pressed("ui_select") and Input.is_action_pressed("click") and event is InputEventMouseMotion:
+	elif Input.is_action_pressed("move") and event is InputEventMouseMotion and texture.texture:
 		cam.position -= event.relative
 		cam.position = cam.position.limit_length(CAM_LIM)
-
+	elif event.is_action_pressed("zoom_in") and texture.texture:
+		zoom -= 1
+		if zoom < 0:
+			zoom = 0
+			return
+		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
+		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom + 1])
+		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
+	elif event.is_action_pressed("zoom_out") and texture.texture:
+		zoom += 1
+		if zoom > ZOOM_INTERVALS.size() - 1:
+			zoom = ZOOM_INTERVALS.size() - 1
+			return
+		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
+		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom - 1])
+		$Layout/Bottom/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
+		
 
 func _on_Help_pressed() -> void: 
 	$Help.popup_centered()
@@ -287,3 +305,13 @@ func _on_Credits_pressed() -> void:
 
 func _on_Label_meta_clicked(meta) -> void:
 	OS.shell_open(meta)
+
+
+func _on_Close_pressed() -> void:
+	$Layout/HBoxContainer/Close.disabled = true
+	transparent.hide()
+	xport.disabled = true
+	sep.disabled = true
+	for child in texture.get_children():
+		child.queue_free()
+	texture.texture = null
