@@ -1,0 +1,176 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://main.gd" type="Script" id=1]
+[ext_resource path="res://viewport.gd" type="Script" id=2]
+[ext_resource path="res://transparent.png" type="Texture" id=3]
+
+[node name="Main" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="Layout" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Layout"]
+margin_right = 1024.0
+margin_bottom = 20.0
+
+[node name="Separate" type="Button" parent="Layout/HBoxContainer"]
+margin_right = 124.0
+margin_bottom = 20.0
+focus_mode = 0
+text = "Open Spritesheet"
+
+[node name="Export" type="Button" parent="Layout/HBoxContainer"]
+margin_left = 128.0
+margin_right = 231.0
+margin_bottom = 20.0
+focus_mode = 0
+disabled = true
+text = "Export Images"
+
+[node name="Help" type="Button" parent="Layout/HBoxContainer"]
+margin_left = 235.0
+margin_right = 277.0
+margin_bottom = 20.0
+focus_mode = 0
+text = "Help"
+
+[node name="Credits" type="Button" parent="Layout/HBoxContainer"]
+margin_left = 281.0
+margin_right = 338.0
+margin_bottom = 20.0
+focus_mode = 0
+text = "Credits"
+
+[node name="VC" type="ViewportContainer" parent="Layout"]
+margin_top = 24.0
+margin_right = 1024.0
+margin_bottom = 582.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="Viewport" type="Viewport" parent="Layout/VC"]
+size = Vector2( 1024, 558 )
+handle_input_locally = false
+usage = 0
+render_target_update_mode = 3
+script = ExtResource( 2 )
+
+[node name="Transparent" type="TextureRect" parent="Layout/VC/Viewport"]
+visible = false
+margin_right = 40.0
+margin_bottom = 40.0
+texture = ExtResource( 3 )
+stretch_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="Layout/VC/Viewport"]
+mouse_filter = 0
+
+[node name="Camera2D" type="Camera2D" parent="Layout/VC/Viewport"]
+current = true
+
+[node name="ProgressBar" type="ProgressBar" parent="Layout"]
+margin_top = 586.0
+margin_right = 1024.0
+margin_bottom = 600.0
+
+[node name="FileDialog" type="FileDialog" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -200.0
+margin_top = -150.0
+margin_right = 200.0
+margin_bottom = 150.0
+window_title = "Open a File"
+resizable = true
+mode = 0
+access = 2
+filters = PoolStringArray( "*.png" )
+
+[node name="Note" type="ConfirmationDialog" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -150.0
+margin_top = -100.0
+margin_right = 150.0
+margin_bottom = 100.0
+rect_min_size = Vector2( 300, 200 )
+dialog_autowrap = true
+
+[node name="Help" type="PopupPanel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -200.0
+margin_top = -150.0
+margin_right = 200.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 400, 300 )
+
+[node name="Label" type="Label" parent="Help"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "Left click and drag to make a new sprite
+Right click and drag to select sprites
+Delete or backspace to delete selected sprites
+Space and click to move around
+Shift click to select multiple sprites at once"
+align = 1
+valign = 1
+autowrap = true
+
+[node name="Credits" type="PopupPanel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -200.0
+margin_top = -50.0
+margin_right = 200.0
+margin_bottom = 50.0
+rect_min_size = Vector2( 400, 100 )
+
+[node name="Label" type="RichTextLabel" parent="Credits"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 4.0
+margin_right = -4.0
+margin_bottom = -4.0
+bbcode_enabled = true
+bbcode_text = "[center]Credits
+Exuin (Emily2)
+Wasted
+KamiGrave
+Based on code from [url=https://github.com/ForkandBeard/Alferd-Spritesheet-Unpacker]Alferd Spritesheet Unpacker[/url][/center]"
+text = "Credits
+Exuin (Emily2)
+Wasted
+KamiGrave
+Based on code from Alferd Spritesheet Unpacker"
+
+[connection signal="pressed" from="Layout/HBoxContainer/Separate" to="." method="_on_Separate_pressed"]
+[connection signal="pressed" from="Layout/HBoxContainer/Export" to="." method="_on_Export_pressed"]
+[connection signal="pressed" from="Layout/HBoxContainer/Help" to="." method="_on_Help_pressed"]
+[connection signal="pressed" from="Layout/HBoxContainer/Credits" to="." method="_on_Credits_pressed"]
+[connection signal="gui_input" from="Layout/VC" to="." method="outside_sprite_gui_input"]
+[connection signal="gui_input" from="Layout/VC/Viewport/TextureRect" to="." method="outside_sprite_gui_input"]
+[connection signal="resized" from="Layout/VC/Viewport/TextureRect" to="." method="_on_TextureRect_resized"]
+[connection signal="dir_selected" from="FileDialog" to="." method="_on_FileDialog_dir_selected"]
+[connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
+[connection signal="meta_clicked" from="Credits/Label" to="." method="_on_Label_meta_clicked"]
