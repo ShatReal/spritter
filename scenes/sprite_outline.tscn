@@ -1,8 +1,8 @@
 [gd_scene load_steps=9 format=2]
 
-[ext_resource path="res://sprite_outline.gd" type="Script" id=1]
-[ext_resource path="res://button_not_selected.tres" type="StyleBox" id=2]
-[ext_resource path="res://button_selected.tres" type="StyleBox" id=4]
+[ext_resource path="res://resources/button_selected.tres" type="StyleBox" id=1]
+[ext_resource path="res://resources/button_not_selected.tres" type="StyleBox" id=2]
+[ext_resource path="res://scenes/sprite_outline.gd" type="Script" id=3]
 
 [sub_resource type="DynamicFont" id=3]
 
@@ -26,7 +26,7 @@ custom_styles/hover = SubResource( 4 )
 custom_styles/pressed = SubResource( 4 )
 custom_styles/focus = SubResource( 5 )
 custom_styles/normal = SubResource( 4 )
-script = ExtResource( 1 )
+script = ExtResource( 3 )
 
 [node name="Top" type="Button" parent="."]
 margin_left = -1.0
@@ -38,11 +38,11 @@ focus_mode = 0
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
@@ -55,11 +55,11 @@ rect_min_size = Vector2( 5, 5 )
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
@@ -72,11 +72,11 @@ rect_min_size = Vector2( 5, 5 )
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
@@ -89,11 +89,11 @@ rect_min_size = Vector2( 5, 5 )
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
@@ -106,11 +106,11 @@ rect_min_size = Vector2( 5, 5 )
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
@@ -123,11 +123,11 @@ rect_min_size = Vector2( 5, 5 )
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
@@ -140,11 +140,11 @@ rect_min_size = Vector2( 5, 5 )
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
@@ -157,11 +157,11 @@ rect_min_size = Vector2( 5, 5 )
 mouse_filter = 1
 mouse_default_cursor_shape = 2
 custom_fonts/font = SubResource( 1 )
-custom_styles/hover = ExtResource( 4 )
-custom_styles/pressed = ExtResource( 4 )
+custom_styles/hover = ExtResource( 1 )
+custom_styles/pressed = ExtResource( 1 )
 custom_styles/focus = SubResource( 2 )
 custom_styles/disabled = ExtResource( 2 )
-custom_styles/normal = ExtResource( 4 )
+custom_styles/normal = ExtResource( 1 )
 disabled = true
 keep_pressed_outside = true
 
