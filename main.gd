@@ -126,7 +126,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		background.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
 		image_node.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		# zoom in to mouse
 		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (ZOOM_INTERVALS[zoom] * 100)
 		images_node.rect_min_size = image_node.rect_scale * size * 2
 		var max_vector := get_max_vector2(size * ZOOM_INTERVALS[zoom], scroll.rect_size)
@@ -139,7 +138,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		background.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
 		image_node.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		# zoom in to mouse
 		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (ZOOM_INTERVALS[zoom] * 100)
 		images_node.rect_min_size = image_node.rect_scale * size * 2
 		var max_vector := get_max_vector2(size * ZOOM_INTERVALS[zoom], scroll.rect_size)
