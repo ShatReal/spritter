@@ -1,8 +1,8 @@
 extends Control
 
 
-const SpriteOutline := preload("res://sprite_outline.tscn")
-const Selection := preload("res://selection.tscn")
+const SpriteOutline := preload("res://scenes/sprite_outline.tscn")
+const Selection := preload("res://scenes/selection.tscn")
 const ZOOM_INTERVALS := [1.0/8, 1.0/4, 1.0/2, 1.0, 2.0, 4.0, 8.0]
 const MAX_HISTORY := 100
 const SCROLL_SPEED := 10

@@ -90,6 +90,8 @@ size_flags_vertical = 3
 script = ExtResource( 2 )
 
 [node name="Images" type="Control" parent="Layout/Main/Scroll"]
+margin_right = 775.0
+margin_bottom = 524.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 2 )
