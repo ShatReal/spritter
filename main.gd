@@ -5,6 +5,7 @@ const SpriteOutline := preload("res://sprite_outline.tscn")
 const Selection := preload("res://selection.tscn")
 const ZOOM_INTERVALS := [1.0/8, 1.0/4, 1.0/2, 1.0, 2.0, 4.0, 8.0]
 const MAX_HISTORY := 100
+const SCROLL_SPEED := 10
 
 var distance_between_tiles := 0
 var regions: Array
@@ -36,15 +37,14 @@ var current_being_created_uid: int
 onready var file_button := $"%FileButton"
 onready var sprite_button := $"%SpriteButton"
 onready var export_button := $"%ExportButton"
-onready var background := $Layout/Main/VC/Viewport/Background
-onready var image_node := $Layout/Main/VC/Viewport/Image
-onready var cam := $Layout/Main/VC/Viewport/Camera2D
-onready var vc := $Layout/Main/VC
+onready var background := $Layout/Main/Scroll/Images/Background
+onready var image_node := $Layout/Main/Scroll/Images/Image
+onready var scroll := $Layout/Main/Scroll
 onready var cut_rows := $Cut/VBox/Top/Rows
 onready var cut_cols := $Cut/VBox/Top/Columns
 onready var cut_y := $Cut/VBox/Bottom/YSize
 onready var cut_x := $Cut/VBox/Bottom/XSize
-onready var viewport := $Layout/Main/VC/Viewport
+onready var images_node := $Layout/Main/Scroll/Images
 onready var tree := $Layout/Main/Tree
 
 
@@ -80,7 +80,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		if save_path:
 			save_sheet(save_path)
 		else:
-			viewport.gui_disable_input = true
 			$FileDialog.mode = FileDialog.MODE_SAVE_FILE
 			$FileDialog.filters = PoolStringArray(["*.spritter"])
 			file_action = "save"
@@ -121,21 +120,31 @@ func _unhandled_input(event: InputEvent) -> void:
 		for node in get_tree().get_nodes_in_group("sprite_outline"):
 			node.select(true)
 	elif event.is_action_pressed("zoom_in") and image_node.texture:
-		zoom -= 1
-		if zoom < 0:
-			zoom = 0
-			return
-		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom + 1])
-		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
-	elif event.is_action_pressed("zoom_out") and image_node.texture:
 		zoom += 1
 		if zoom > ZOOM_INTERVALS.size() - 1:
 			zoom = ZOOM_INTERVALS.size() - 1
 			return
-		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom - 1])
-		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
+		background.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
+		image_node.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
+		# zoom in to mouse
+		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (ZOOM_INTERVALS[zoom] * 100)
+		images_node.rect_min_size = image_node.rect_scale * size * 2
+		var max_vector := get_max_vector2(size * ZOOM_INTERVALS[zoom], scroll.rect_size)
+		background.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
+		image_node.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
+	elif event.is_action_pressed("zoom_out") and image_node.texture:
+		zoom -= 1
+		if zoom < 0:
+			zoom = 0
+			return
+		background.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
+		image_node.rect_scale = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
+		# zoom in to mouse
+		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (ZOOM_INTERVALS[zoom] * 100)
+		images_node.rect_min_size = image_node.rect_scale * size * 2
+		var max_vector := get_max_vector2(size * ZOOM_INTERVALS[zoom], scroll.rect_size)
+		background.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
+		image_node.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
 	elif (event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down") or event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right")) and not Input.is_action_pressed("ui_down") and not Input.is_action_pressed("ui_left") and not Input.is_action_pressed("ui_right"):
 		start_movement()
 	elif (event.is_action_released("ui_up") or event.is_action_released("ui_down") or event.is_action_released("ui_left") or event.is_action_released("ui_right")) and not Input.is_action_pressed("ui_down") and not Input.is_action_pressed("ui_left") and not Input.is_action_pressed("ui_right"):
@@ -184,6 +193,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("auto_sprite"):
 		action = "auto_sprite"
 		$Layout/Main/Sidebar/AutoSprite.pressed = true
+
+
+func get_max_vector2(vec1: Vector2, vec2: Vector2) -> Vector2:
+	return Vector2(
+		max(vec1.x, vec2.x),
+		max(vec1.y, vec2.y)
+	)
 
 
 func delete_outline(uid) -> void:
@@ -338,14 +354,16 @@ func load_image(path, d = null) -> void:
 	text.create_from_image(image, 0)
 	image_node.texture = text
 	background.show()
-	image_node.rect_position = -size / 2
-	background.rect_position = -size / 2
 	cut_y.max_value = size.y
 	cut_x.max_value = size.x
 	recalc_cut(cut_rows.value, "Rows")
 	recalc_cut(cut_cols.value, "Columns")
 	cam_lim = max(size.y, size.x)
 	tree_root.set_text(0, image_name)
+	images_node.rect_min_size = image_node.rect_scale * size * 2
+	var max_vector := get_max_vector2(size * ZOOM_INTERVALS[zoom], scroll.rect_size)
+	background.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
+	image_node.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
 
 
 func set_image_name(path: String) -> void:
@@ -552,24 +570,11 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 					if button.selected:
 						button.select(false)
 	elif Input.is_action_pressed("move") and event is InputEventMouseMotion:
-		cam.position -= event.relative
-		cam.position = cam.position.limit_length(cam_lim)
-	elif event.is_action_pressed("zoom_in"):
-		zoom -= 1
-		if zoom < 0:
-			zoom = 0
-			return
-		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom + 1])
-		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
-	elif event.is_action_pressed("zoom_out"):
-		zoom += 1
-		if zoom > ZOOM_INTERVALS.size() - 1:
-			zoom = ZOOM_INTERVALS.size() - 1
-			return
-		cam.zoom = Vector2(ZOOM_INTERVALS[zoom], ZOOM_INTERVALS[zoom])
-		cam.position += (get_viewport().size / 2 - get_global_mouse_position()) * (ZOOM_INTERVALS[zoom] - ZOOM_INTERVALS[zoom - 1])
-		$Layout/BottomBar/HBox/Zoom.text = "%s%%" % (1 / ZOOM_INTERVALS[zoom] * 100)
+		scroll.scroll_horizontal -= event.relative.x / get_viewport().size.x * scroll.get_h_scrollbar().max_value * SCROLL_SPEED / ZOOM_INTERVALS[zoom]
+		scroll.scroll_vertical -= event.relative.y / get_viewport().size.y * scroll.get_v_scrollbar().max_value * SCROLL_SPEED / ZOOM_INTERVALS[zoom]
+	elif event.is_action_pressed("zoom_in") or event.is_action_pressed("zoom_out"):
+		get_tree().set_input_as_handled()
+		_unhandled_input(event)
 
 
 func _on_TextureRect_resized() -> void:
@@ -608,7 +613,6 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 		"FileButton":
 			match id:
 				0:
-					viewport.gui_disable_input = true
 					$FileDialog.mode = FileDialog.MODE_OPEN_FILE
 					file_action = "open"
 					$FileDialog.filters = PoolStringArray(["*.png"])
@@ -616,13 +620,11 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 				1:
 					close_image()
 				2:
-					viewport.gui_disable_input = true
 					$FileDialog.mode = FileDialog.MODE_SAVE_FILE
 					$FileDialog.filters = PoolStringArray(["*.spritter"])
 					file_action = "save"
 					$FileDialog.popup()
 				3:
-					viewport.gui_disable_input = true
 					$FileDialog.mode = FileDialog.MODE_OPEN_FILE
 					$FileDialog.filters = PoolStringArray(["*.spritter"])
 					file_action = "load"
@@ -630,23 +632,19 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 		"SpriteButton":
 			match id:
 				0:
-					viewport.gui_disable_input = true
 					$Cut.popup()
 				1:
 					separate()
 		"ExportButton":
 			match id:
 				0:
-					viewport.gui_disable_input = true
 					$FileDialog.mode = FileDialog.MODE_OPEN_DIR
 					$FileDialog.popup()
 		"HelpButton":
 			match id:
 				0:
-					viewport.gui_disable_input = true
 					$Help.popup()
 				1:
-					viewport.gui_disable_input = true
 					$Credits.popup()
 
 
@@ -679,10 +677,6 @@ func recalc_cut(value: float, node: String) -> void:
 			cut_rows.value = int(size.y / value)
 		"XSize":
 			cut_cols.value = int(size.x / value)
-
-
-func on_popup_hide() -> void:
-	viewport.gui_disable_input = false
 
 
 func _on_Tree_multi_selected(item: TreeItem, _column: int, selected: bool) -> void:
@@ -758,7 +752,6 @@ func load_sheet(path: String) -> void:
 	save_path = path
 
 func show_note(message: String) -> void:
-	viewport.gui_disable_input = true
 	$Note.dialog_text = message
 	$Note.popup()
 
