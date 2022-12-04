@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://main.gd" type="Script" id=1]
-[ext_resource path="res://viewport.gd" type="Script" id=2]
+[ext_resource path="res://input_passer.gd" type="Script" id=2]
 [ext_resource path="res://transparent.png" type="Texture" id=3]
 
 [sub_resource type="ButtonGroup" id=1]
@@ -17,60 +17,81 @@ __meta__ = {
 [node name="Layout" type="VBoxContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+custom_constants/separation = 0
 __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="Buttons" type="HBoxContainer" parent="Layout"]
+[node name="TopBar" type="PanelContainer" parent="Layout"]
 margin_right = 1024.0
-margin_bottom = 20.0
+margin_bottom = 34.0
 
-[node name="File" type="MenuButton" parent="Layout/Buttons"]
+[node name="Buttons" type="HBoxContainer" parent="Layout/TopBar"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 1017.0
+margin_bottom = 27.0
+custom_constants/separation = 0
+
+[node name="FileButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
+unique_name_in_owner = true
 margin_right = 35.0
 margin_bottom = 20.0
 text = "File"
-items = [ "Open File", null, 0, false, false, 0, 0, null, "", false, "Close File", null, 0, false, false, 1, 0, null, "", false ]
+items = [ "Open File", null, 0, false, false, 0, 0, null, "", false, "Close File", null, 0, false, true, 1, 0, null, "", false, "Save", null, 0, false, true, 2, 0, null, "", false, "Load", null, 0, false, false, 3, 0, null, "", false ]
 switch_on_hover = true
 
-[node name="Sprite" type="MenuButton" parent="Layout/Buttons"]
-margin_left = 39.0
-margin_right = 88.0
+[node name="SpriteButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
+unique_name_in_owner = true
+margin_left = 35.0
+margin_right = 84.0
 margin_bottom = 20.0
 text = "Sprite"
 items = [ "Cut by Grid", null, 0, false, false, 0, 0, null, "", false, "Detect Sprites", null, 0, false, false, 1, 0, null, "", false ]
 switch_on_hover = true
 
-[node name="Export" type="MenuButton" parent="Layout/Buttons"]
-margin_left = 92.0
-margin_right = 144.0
+[node name="ExportButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
+unique_name_in_owner = true
+margin_left = 84.0
+margin_right = 136.0
 margin_bottom = 20.0
 text = "Export"
 items = [ "Export as Individual Images", null, 0, false, false, 0, 0, null, "", false ]
 switch_on_hover = true
 
-[node name="Help" type="MenuButton" parent="Layout/Buttons"]
-margin_left = 148.0
-margin_right = 190.0
+[node name="HelpButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
+unique_name_in_owner = true
+margin_left = 136.0
+margin_right = 178.0
 margin_bottom = 20.0
 text = "Help"
 items = [ "Help", null, 0, false, false, 0, 0, null, "", false, "Credits", null, 0, false, false, 1, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="Main" type="HBoxContainer" parent="Layout"]
-margin_top = 24.0
+margin_top = 34.0
 margin_right = 1024.0
-margin_bottom = 564.0
+margin_bottom = 558.0
 size_flags_vertical = 3
+custom_constants/separation = 0
+
+[node name="Tree" type="Tree" parent="Layout/Main"]
+margin_right = 150.0
+margin_bottom = 524.0
+rect_min_size = Vector2( 150, 0 )
+select_mode = 2
 
 [node name="VC" type="ViewportContainer" parent="Layout/Main"]
-margin_right = 921.0
-margin_bottom = 540.0
+margin_left = 150.0
+margin_right = 925.0
+margin_bottom = 524.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 stretch = true
+script = ExtResource( 2 )
 
 [node name="Viewport" type="Viewport" parent="Layout/Main/VC"]
-size = Vector2( 921, 540 )
+size = Vector2( 775, 524 )
 handle_input_locally = false
 usage = 0
 render_target_update_mode = 3
@@ -78,9 +99,8 @@ script = ExtResource( 2 )
 
 [node name="Background" type="TextureRect" parent="Layout/Main/VC/Viewport"]
 visible = false
-margin_right = 40.0
-margin_bottom = 40.0
 texture = ExtResource( 3 )
+expand = true
 stretch_mode = 2
 
 [node name="Image" type="TextureRect" parent="Layout/Main/VC/Viewport"]
@@ -92,33 +112,60 @@ current = true
 [node name="Sidebar" type="VBoxContainer" parent="Layout/Main"]
 margin_left = 925.0
 margin_right = 1024.0
-margin_bottom = 540.0
+margin_bottom = 524.0
+custom_constants/separation = 0
 
 [node name="EditSprites" type="Button" parent="Layout/Main/Sidebar"]
 margin_right = 99.0
 margin_bottom = 20.0
+focus_mode = 0
 toggle_mode = true
 pressed = true
 group = SubResource( 1 )
 text = "Edit Sprites"
 
 [node name="SelectSprites" type="Button" parent="Layout/Main/Sidebar"]
-margin_top = 24.0
+margin_top = 20.0
 margin_right = 99.0
-margin_bottom = 44.0
+margin_bottom = 40.0
+focus_mode = 0
 toggle_mode = true
 group = SubResource( 1 )
 text = "Select Sprites"
 
-[node name="Bottom" type="HBoxContainer" parent="Layout"]
-margin_top = 568.0
-margin_right = 1024.0
-margin_bottom = 582.0
+[node name="AutoSprite" type="Button" parent="Layout/Main/Sidebar"]
+margin_top = 40.0
+margin_right = 99.0
+margin_bottom = 60.0
+focus_mode = 0
+toggle_mode = true
+group = SubResource( 1 )
+text = "Auto Sprite"
 
-[node name="Zoom" type="Label" parent="Layout/Bottom"]
+[node name="BottomBar" type="PanelContainer" parent="Layout"]
+margin_top = 558.0
+margin_right = 1024.0
+margin_bottom = 586.0
+
+[node name="HBox" type="HBoxContainer" parent="Layout/BottomBar"]
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 1017.0
+margin_bottom = 21.0
+custom_constants/separation = 0
+
+[node name="Zoom" type="Label" parent="Layout/BottomBar/HBox"]
 margin_right = 40.0
 margin_bottom = 14.0
 text = "100% "
+
+[node name="MousePos" type="Label" parent="Layout/BottomBar/HBox"]
+margin_left = 978.0
+margin_right = 1010.0
+margin_bottom = 14.0
+size_flags_horizontal = 10
+text = "(0, 0)"
+align = 2
 
 [node name="ProgressBar" type="ProgressBar" parent="Layout"]
 margin_top = 586.0
@@ -198,18 +245,17 @@ margin_right = -4.0
 margin_bottom = -4.0
 bbcode_enabled = true
 bbcode_text = "[center]Credits
-Exuin (Emily2)
-Wasted
-KamiGrave
+Lead Dev Exuin (Emily2)
+Code from Wasted, KamiGrave
+Name, mascot from L4Vo5
 Based on code from [url=https://github.com/ForkandBeard/Alferd-Spritesheet-Unpacker]Alferd Spritesheet Unpacker[/url][/center]"
 text = "Credits
-Exuin (Emily2)
-Wasted
-KamiGrave
+Lead Dev Exuin (Emily2)
+Code from Wasted, KamiGrave
+Name, mascot from L4Vo5
 Based on code from Alferd Spritesheet Unpacker"
 
 [node name="Cut" type="PopupPanel" parent="."]
-visible = true
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -307,6 +353,8 @@ margin_bottom = 184.0
 size_flags_horizontal = 4
 text = "Ok"
 
+[connection signal="multi_selected" from="Layout/Main/Tree" to="." method="_on_Tree_multi_selected"]
+[connection signal="nothing_selected" from="Layout/Main/Tree" to="." method="_on_Tree_nothing_selected"]
 [connection signal="gui_input" from="Layout/Main/VC" to="." method="outside_sprite_gui_input"]
 [connection signal="gui_input" from="Layout/Main/VC/Viewport/Image" to="." method="outside_sprite_gui_input"]
 [connection signal="resized" from="Layout/Main/VC/Viewport/Image" to="." method="_on_TextureRect_resized"]

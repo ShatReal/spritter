@@ -1,6 +1,11 @@
 extends Button
 
 
+signal selected(on)
+signal outline_resized(original_rect, new_rect)
+signal move_started()
+signal move_ended()
+
 const BORDER_WIDTH := 2
 
 var selected_button: Button
@@ -9,7 +14,8 @@ var selected := false
 var mouse_offset: Vector2
 var is_preview := false
 var preview_start: Vector2
-var is_moving: = false
+var is_moving := false
+var original_rect: Rect2
 
 
 func _ready() -> void:
@@ -21,8 +27,11 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_released("click"):
+		if not selected_button:
+			return
 		selected_button = null
 		set_process(false)
+		emit_signal("outline_resized", original_rect, get_global_rect())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -36,6 +45,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		resize(rect_global_position + Vector2.UP, rect_size)
 	elif event.is_action_pressed("ui_down"):
 		resize(rect_global_position + Vector2.DOWN, rect_size)
+
 
 
 func _process(_delta: float) -> void:
@@ -99,12 +109,14 @@ func on_edge_button_down(edge: Button) -> void:
 		return
 	if Input.is_action_pressed("move"):
 		return
+	original_rect = get_global_rect()
 	set_process(true)
 	selected_button = edge
 	
 
 func select(on: bool) -> void:
 	selected = on
+	emit_signal("selected", on)
 	for child in get_children():
 		child.disabled = not on
 		if on:
@@ -132,6 +144,7 @@ func _on_SpriteOutline_button_down() -> void:
 		set_process(true)
 		is_moving = true
 		mouse_offset = get_local_mouse_position()
+		emit_signal("move_started")
 
 
 func _on_SpriteOutline_button_up() -> void:
@@ -150,6 +163,7 @@ func _on_SpriteOutline_pressed() -> void:
 					other_sprite.select(false)
 	else:
 		is_moving = false
+		emit_signal("move_ended")
 	select(true)
 
 
