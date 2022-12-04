@@ -140,16 +140,14 @@ func select(on: bool) -> void:
 func _on_SpriteOutline_button_down() -> void:
 	if Input.is_action_pressed("move"):
 		return
-	if selected:
-		set_process(true)
-		is_moving = true
-		mouse_offset = get_local_mouse_position()
-		emit_signal("move_started")
+	select(true)
+	set_process(true)
+	is_moving = true
+	mouse_offset = get_local_mouse_position()
+	emit_signal("move_started")
 
 
 func _on_SpriteOutline_button_up() -> void:
-	if is_preview:
-		set_preview(false)
 	set_process(false)
 
 
@@ -164,7 +162,6 @@ func _on_SpriteOutline_pressed() -> void:
 	else:
 		is_moving = false
 		emit_signal("move_ended")
-	select(true)
 
 
 func set_preview(on: bool) -> void:

@@ -4,6 +4,7 @@ extends Control
 const SpriteOutline := preload("res://sprite_outline.tscn")
 const Selection := preload("res://selection.tscn")
 const ZOOM_INTERVALS := [1.0/8, 1.0/4, 1.0/2, 1.0, 2.0, 4.0, 8.0]
+const MAX_HISTORY := 100
 
 var distance_between_tiles := 0
 var regions: Array
@@ -30,6 +31,7 @@ var sprites := {}
 var counter := 0
 var file_action: String
 var save_path: String
+var current_being_created_uid: int
 
 onready var file_button := $"%FileButton"
 onready var sprite_button := $"%SpriteButton"
@@ -138,6 +140,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		start_movement()
 	elif (event.is_action_released("ui_up") or event.is_action_released("ui_down") or event.is_action_released("ui_left") or event.is_action_released("ui_right")) and not Input.is_action_pressed("ui_down") and not Input.is_action_pressed("ui_left") and not Input.is_action_pressed("ui_right"):
 		end_movement()
+	elif event.is_action_pressed("redo"):
+		history_index += 1
+		if history.size() == history_index:
+			history_index = history.size() - 1
+			return
+		var a: Dictionary = history[history_index]
+		match a.action:
+			"move":
+				for dict in a.ends:
+					sprites[dict.uid].outline.rect_global_position = dict.pos
+			"delete":
+				for outline in a.outlines:
+					delete_outline(outline.uid)
+			"resize":
+				sprites[a.uid].outline.resize(a.new_rect.position, a.new_rect.size)
+			"create":
+				for outline in a.outlines:
+					make_sprite_outline(outline.rect.position, outline.rect.size, outline.name, false, outline.uid, outline.index)
+			"rename":
+				sprites[a.uid].name = a.new
+				sprites[a.uid].tree_item.set_text(0, a.new)
 	elif event.is_action_pressed("undo"):
 		if history_index == -1:
 			return
@@ -151,27 +174,23 @@ func _unhandled_input(event: InputEvent) -> void:
 					make_sprite_outline(outline.rect.position, outline.rect.size, outline.name, false, outline.uid, outline.index)
 			"resize":
 				sprites[a.uid].outline.resize(a.original_rect.position, a.original_rect.size)
-		history_index -= 1
-	elif event.is_action_pressed("redo"):
-		if history.size() == history_index + 1:
-			return
-		var a: Dictionary = history[history_index]
-		match a.action:
-			"move":
-				for dict in a.ends:
-					sprites[dict.uid].outline.rect_global_position = dict.pos
-			"delete":
+			"create":
 				for outline in a.outlines:
-					sprites[outline.uid].outline.queue_free()
-					tree_root.remove_child(sprites[outline.uid].tree_item)
-					sprites[outline.uid].tree_item.free()
-					sprites.erase(outline.uid)
-			"resize":
-				sprites[a.uid].outline.resize(a.new_rect.position, a.new_rect.size)
-		history_index += 1
+					delete_outline(outline.uid)
+			"rename":
+				sprites[a.uid].name = a.old
+				sprites[a.uid].tree_item.set_text(0, a.old)
+		history_index -= 1
 	elif event.is_action_pressed("auto_sprite"):
 		action = "auto_sprite"
 		$Layout/Main/Sidebar/AutoSprite.pressed = true
+
+
+func delete_outline(uid) -> void:
+	sprites[uid].outline.queue_free()
+	tree_root.remove_child(sprites[uid].tree_item)
+	sprites[uid].tree_item.free()
+	sprites.erase(uid)
 
 
 func sort_by_index(a: Dictionary, b: Dictionary) -> bool:
@@ -189,7 +208,7 @@ func get_outline_index(tree_item: TreeItem) -> int:
 	return index
 
 
-func make_sprite_outline(global_pos: Vector2, outline_size: Vector2, n: String, is_preview := false, uid := -1, index := -1) -> void:
+func make_sprite_outline(global_pos: Vector2, outline_size: Vector2, n: String, is_preview := false, uid := -1, index := -1) -> int:
 	var outline := SpriteOutline.instance()
 	image_node.add_child(outline)
 	outline.parent_global_rect = Rect2(image_node.rect_global_position, size)
@@ -213,11 +232,13 @@ func make_sprite_outline(global_pos: Vector2, outline_size: Vector2, n: String, 
 	sprites[uid] = {
 		"outline": outline,
 		"tree_item": tree_item,
+		"name": n,
 	}
 	if is_preview:
 		outline.preview_start = global_pos
 		outline.set_preview(true)
-		outline.select(true)
+	outline.select(true)
+	return uid
 
 
 func on_outline_resized(original_rect: Rect2, new_rect: Rect2, outline: Button) -> void:
@@ -227,6 +248,24 @@ func on_outline_resized(original_rect: Rect2, new_rect: Rect2, outline: Button) 
 		"new_rect": new_rect,
 		"uid": get_uid_from_object(outline),
 	})
+
+
+func on_outlines_created(uids: Array) -> void:
+	var dict := {
+		"action": "create",
+		"outlines": []
+	}
+	for uid in uids:
+		dict.outlines.append(
+			{
+				"uid": uid,
+				"rect": sprites[uid].outline.get_global_rect(),
+				"name": sprites[uid].tree_item.get_text(0),
+				"index": get_outline_index(sprites[uid].tree_item),
+			}
+		)
+	dict.outlines.sort_custom(self, "sort_by_index")
+	add_history(dict)
 
 
 func start_movement() -> void:
@@ -260,6 +299,9 @@ func add_history(dict: Dictionary) -> void:
 		history.pop_back()
 	history_index += 1
 	history.append(dict)
+	if history.size() == MAX_HISTORY:
+		history.pop_front()
+		history_index -= 1
 
 
 func _on_FileDialog_file_selected(path: String) -> void:
@@ -428,9 +470,11 @@ func combine_boxes() -> void:
 
 
 func display_sprites() -> void:
+	var uids := []
 	for rect in all_boxes:
-		make_sprite_outline(rect.position + image_node.rect_global_position, rect.size, str(counter))
+		uids.append(make_sprite_outline(rect.position + image_node.rect_global_position, rect.size, str(counter)))
 		counter += 1
+	on_outlines_created(uids)
 
 
 func on_outline_selected(on: bool, outline: Button) -> void:
@@ -466,8 +510,14 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 		if Input.is_action_pressed("shift"):
 			return
 		for button in get_tree().get_nodes_in_group("sprite_outline"):
-			if button.selected and not button.is_preview:
-				button.select(false)
+			if button.selected:
+				if button.is_preview:
+					button.set_preview(false)
+					on_outlines_created([current_being_created_uid])
+				else:
+					button.select(false)
+		if action == "auto_sprite":
+			sprites[current_being_created_uid].outline.select(true)
 	elif not Input.is_action_pressed("move") and event.is_action_pressed("click") and image_node.get_global_rect().has_point(mouse) and action == "auto_sprite":
 		var coords: Vector2 = image_node.get_local_mouse_position().snapped(Vector2.ONE)
 		if data[coords.x * 4 + coords.y * size.x * 4 + 3] == 0.0:
@@ -476,7 +526,9 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 		while not auto_is_rect_clear(rect):
 			rect = auto_grow_rect(rect)
 		rect = Rect2(rect.position + Vector2.ONE, rect.size - Vector2.ONE)
-		make_sprite_outline(rect.position + image_node.rect_global_position, rect.size, str(counter))
+		var uid := make_sprite_outline(rect.position + image_node.rect_global_position, rect.size, str(counter))
+		on_outlines_created([uid])
+		current_being_created_uid = uid
 		counter += 1
 	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("click") and image_node.get_global_rect().has_point(mouse):
 		match action:
@@ -485,7 +537,7 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 				for button in get_tree().get_nodes_in_group("sprite_outline"):
 					if button.selected:
 						button.select(false)
-				make_sprite_outline(mouse, Vector2.ONE, str(counter), true)
+				current_being_created_uid = make_sprite_outline(mouse, Vector2.ONE, str(counter), true)
 				counter += 1
 			"select_sprites":
 				is_drawing = true
@@ -699,8 +751,10 @@ func load_sheet(path: String) -> void:
 			show_note("Error opening file!")
 			return
 	load_image(path, d)
+	var uids := []
 	for sprite in sprite_data:
-		make_sprite_outline(sprite.rect.position, sprite.rect.size, sprite.name, false, sprite.uid, sprite.index)
+		uids.append(make_sprite_outline(sprite.rect.position, sprite.rect.size, sprite.name, false, sprite.uid, sprite.index))
+	on_outlines_created(uids)
 	save_path = path
 
 func show_note(message: String) -> void:
@@ -747,3 +801,14 @@ func auto_lef_col(r: Rect2, y: int) -> bool:
 
 func auto_rig_col(r: Rect2, y: int) -> bool:
 	return data[(r.end.x + (r.position.y + y) * size.x) * 4 + 3] != 0.0
+
+
+func _on_Tree_item_edited() -> void:
+	var uid := get_uid_from_object(tree.get_selected())
+	add_history({
+		"action": "rename",
+		"uid": uid,
+		"old": sprites[uid].name,
+		"new": tree.get_selected().get_text(0),
+	})
+	sprites[uid].name = tree.get_selected().get_text(0)
