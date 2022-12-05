@@ -1,14 +1,14 @@
 extends Panel
 
 
-var parent_global_rect: Rect2
 var preview_start: Vector2
 
 
 func _process(_delta: float) -> void:
-	var mouse: Vector2 = (get_global_mouse_position()).snapped(Vector2.ONE)
-	mouse.x = clamp(mouse.x, parent_global_rect.position.x, parent_global_rect.end.x)
-	mouse.y = clamp(mouse.y, parent_global_rect.position.y, parent_global_rect.end.y)
+	var mouse: Vector2 = get_parent().get_local_mouse_position().snapped(Vector2.ONE)
+	var parent_rect: Rect2 = get_parent().get_rect()
+	mouse.x = clamp(mouse.x, 0, parent_rect.size.x)
+	mouse.y = clamp(mouse.y, 0, parent_rect.size.y)
 	if mouse.x < preview_start.x:
 		if mouse.y < preview_start.y:
 			resize(Vector2(mouse.x, mouse.y), Vector2(preview_start.x - mouse.x, preview_start.y - mouse.y))
@@ -17,7 +17,7 @@ func _process(_delta: float) -> void:
 	elif mouse.y < preview_start.y:
 		resize(Vector2(preview_start.x, mouse.y), Vector2(mouse.x - preview_start.x, preview_start.y - mouse.y))
 	else:
-		resize(preview_start, mouse - rect_global_position)
+		resize(preview_start, mouse - rect_position)
 
 
 func _input(event: InputEvent) -> void:
@@ -28,6 +28,6 @@ func _input(event: InputEvent) -> void:
 		queue_free()
 
 
-func resize(global_position: Vector2, size: Vector2) -> void:
-	rect_global_position = global_position
+func resize(position: Vector2, size: Vector2) -> void:
+	rect_position = position
 	rect_size = size

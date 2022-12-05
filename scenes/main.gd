@@ -5,7 +5,7 @@ const SpriteOutline := preload("res://scenes/sprite_outline.tscn")
 const Selection := preload("res://scenes/selection.tscn")
 const ZOOM_INTERVALS := [1.0/8, 1.0/4, 1.0/2, 1.0, 2.0, 4.0, 8.0]
 const MAX_HISTORY := 100
-const SCROLL_SPEED := 10
+const SCROLL_SPEED := 20
 
 var distance_between_tiles := 0
 var regions: Array
@@ -32,7 +32,7 @@ var sprites := {}
 var counter := 0
 var file_action: String
 var save_path: String
-var current_being_created_uid: int
+var current_being_created_uid := -1
 
 onready var file_button := $"%FileButton"
 onready var sprite_button := $"%SpriteButton"
@@ -64,6 +64,9 @@ func _ready() -> void:
 		child.connect("pressed", self, "on_sidebar_button_pressed", [child.get_index()])
 	for node in [cut_rows, cut_cols, cut_y, cut_x]:
 		node.connect("value_changed", self, "recalc_cut", [node.name])
+	for child in $FileDialog.get_children():
+		if child is WindowDialog:
+			child.get_child(1).align = Label.ALIGN_CENTER
 
 
 func get_uid_from_object(object) -> int:
@@ -103,7 +106,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if outline.selected:
 				var uid := get_uid_from_object(outline)
 				dict.outlines.append({
-					"rect": outline.get_global_rect(),
+					"rect": outline.get_rect(),
 					"name": sprites[uid].tree_item.get_text(0),
 					"uid": uid,
 					"index": get_outline_index(sprites[uid].tree_item),
@@ -156,7 +159,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		match a.action:
 			"move":
 				for dict in a.ends:
-					sprites[dict.uid].outline.rect_global_position = dict.pos
+					sprites[dict.uid].outline.rect_position = dict.pos
 			"delete":
 				for outline in a.outlines:
 					delete_outline(outline.uid)
@@ -175,7 +178,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		match a.action:
 			"move":
 				for dict in a.starts:
-					sprites[dict.uid].outline.rect_global_position = dict.pos
+					sprites[dict.uid].outline.rect_position = dict.pos
 			"delete":
 				for outline in a.outlines:
 					make_sprite_outline(outline.rect.position, outline.rect.size, outline.name, false, outline.uid, outline.index)
@@ -222,11 +225,10 @@ func get_outline_index(tree_item: TreeItem) -> int:
 	return index
 
 
-func make_sprite_outline(global_pos: Vector2, outline_size: Vector2, n: String, is_preview := false, uid := -1, index := -1) -> int:
+func make_sprite_outline(pos: Vector2, outline_size: Vector2, n: String, is_preview := false, uid := -1, index := -1) -> int:
 	var outline := SpriteOutline.instance()
 	image_node.add_child(outline)
-	outline.parent_global_rect = Rect2(image_node.rect_global_position, size)
-	outline.resize(global_pos, outline_size)
+	outline.resize(pos, outline_size)
 	outline.name = n
 	outline.connect("selected", self, "on_outline_selected", [outline])
 	outline.connect("outline_resized", self, "on_outline_resized", [outline])
@@ -249,7 +251,7 @@ func make_sprite_outline(global_pos: Vector2, outline_size: Vector2, n: String, 
 		"name": n,
 	}
 	if is_preview:
-		outline.preview_start = global_pos
+		outline.preview_start = pos
 		outline.set_preview(true)
 	outline.select(true)
 	return uid
@@ -273,7 +275,7 @@ func on_outlines_created(uids: Array) -> void:
 		dict.outlines.append(
 			{
 				"uid": uid,
-				"rect": sprites[uid].outline.get_global_rect(),
+				"rect": sprites[uid].outline.get_rect(),
 				"name": sprites[uid].tree_item.get_text(0),
 				"index": get_outline_index(sprites[uid].tree_item),
 			}
@@ -288,7 +290,7 @@ func start_movement() -> void:
 		if outline.selected:
 			movement_temp.append({
 				"uid": get_uid_from_object(outline),
-				"pos": outline.rect_global_position,
+				"pos": outline.rect_position,
 			})
 
 
@@ -299,7 +301,7 @@ func end_movement() -> void:
 	for dict in movement_temp:
 		ends.append({
 			"uid": dict.uid,
-			"pos": sprites[dict.uid].outline.rect_global_position,
+			"pos": sprites[dict.uid].outline.rect_position,
 		})
 	add_history({
 		"action": "move",
@@ -362,6 +364,7 @@ func load_image(path, d = null) -> void:
 	var max_vector := get_max_vector2(size * ZOOM_INTERVALS[zoom], scroll.rect_size)
 	background.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
 	image_node.rect_position = max_vector / 2 - size * ZOOM_INTERVALS[zoom] / 2
+	tree.hide_root = false
 
 
 func set_image_name(path: String) -> void:
@@ -488,7 +491,7 @@ func combine_boxes() -> void:
 func display_sprites() -> void:
 	var uids := []
 	for rect in all_boxes:
-		uids.append(make_sprite_outline(rect.position + image_node.rect_global_position, rect.size, str(counter)))
+		uids.append(make_sprite_outline(rect.position, rect.size, str(counter)))
 		counter += 1
 	on_outlines_created(uids)
 
@@ -520,7 +523,7 @@ func _on_FileDialog_dir_selected(dir: String) -> void:
 func outside_sprite_gui_input(event: InputEvent) -> void:
 	if not image_node.texture:
 		return
-	var mouse: Vector2 = image_node.get_global_mouse_position().snapped(Vector2.ONE)
+	var mouse: Vector2 = image_node.get_local_mouse_position().snapped(Vector2.ONE)
 	if not Input.is_action_pressed("move") and event.is_action_released("click"):
 		is_drawing = false
 		if Input.is_action_pressed("shift"):
@@ -530,23 +533,24 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 				if button.is_preview:
 					button.set_preview(false)
 					on_outlines_created([current_being_created_uid])
+					current_being_created_uid = -1
 				else:
 					button.select(false)
-		if action == "auto_sprite":
+		if action == "auto_sprite" and current_being_created_uid != -1:
 			sprites[current_being_created_uid].outline.select(true)
-	elif not Input.is_action_pressed("move") and event.is_action_pressed("click") and image_node.get_global_rect().has_point(mouse) and action == "auto_sprite":
-		var coords: Vector2 = image_node.get_local_mouse_position().snapped(Vector2.ONE)
-		if data[coords.x * 4 + coords.y * size.x * 4 + 3] == 0.0:
+			current_being_created_uid = -1
+	elif not Input.is_action_pressed("move") and event.is_action_pressed("click") and is_mouse_inside_image() and action == "auto_sprite":
+		if data[mouse.x * 4 + mouse.y * size.x * 4 + 3] == 0.0:
 			return
-		var rect := Rect2(coords - Vector2.ONE, Vector2.ONE * 2)
+		var rect := Rect2(mouse - Vector2.ONE, Vector2.ONE * 2)
 		while not auto_is_rect_clear(rect):
 			rect = auto_grow_rect(rect)
 		rect = Rect2(rect.position + Vector2.ONE, rect.size - Vector2.ONE)
-		var uid := make_sprite_outline(rect.position + image_node.rect_global_position, rect.size, str(counter))
+		var uid := make_sprite_outline(rect.position, rect.size, str(counter))
 		on_outlines_created([uid])
 		current_being_created_uid = uid
 		counter += 1
-	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("click") and image_node.get_global_rect().has_point(mouse):
+	elif not Input.is_action_pressed("move") and not is_drawing and event is InputEventMouseMotion and Input.is_action_pressed("click") and is_mouse_inside_image():
 		match action:
 			"edit_sprites":
 				is_drawing = true
@@ -559,7 +563,6 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 				is_drawing = true
 				var s := Selection.instance()
 				image_node.add_child(s)
-				s.parent_global_rect = Rect2(image_node.rect_global_position, size)
 				s.resize(mouse, Vector2.ONE)
 				s.preview_start = mouse
 				if Input.is_action_pressed("shift"):
@@ -573,6 +576,11 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("zoom_in") or event.is_action_pressed("zoom_out"):
 		get_tree().set_input_as_handled()
 		_unhandled_input(event)
+
+
+func is_mouse_inside_image() -> bool:
+	return image_node.rect_size.x > image_node.get_local_mouse_position().x and image_node.rect_size.y > image_node.get_local_mouse_position().y
+
 
 
 func _on_TextureRect_resized() -> void:
@@ -604,6 +612,7 @@ func close_image() -> void:
 	history = []
 	history_index = -1
 	save_path = ""
+	tree.hide_root = true
 
 
 func on_menu_item_pressed(id: int, group: String) -> void:
@@ -709,7 +718,7 @@ func save_sheet(path: String) -> void:
 	for uid in sprites:
 		array.append({
 			"uid": uid,
-			"rect": sprites[uid].outline.get_global_rect(),
+			"rect": sprites[uid].outline.get_rect(),
 			"name": sprites[uid].tree_item.get_text(0),
 			"index": get_outline_index(sprites[uid].tree_item),
 		})

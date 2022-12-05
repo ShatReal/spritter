@@ -1,7 +1,6 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://images/transparent.png" type="Texture" id=1]
-[ext_resource path="res://scenes/input_passer.gd" type="Script" id=2]
 [ext_resource path="res://scenes/main.gd" type="Script" id=3]
 
 [sub_resource type="ButtonGroup" id=1]
@@ -85,16 +84,15 @@ select_mode = 2
 margin_left = 150.0
 margin_right = 925.0
 margin_bottom = 524.0
+mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-script = ExtResource( 2 )
 
 [node name="Images" type="Control" parent="Layout/Main/Scroll"]
 margin_right = 775.0
 margin_bottom = 524.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-script = ExtResource( 2 )
 
 [node name="Background" type="TextureRect" parent="Layout/Main/Scroll/Images"]
 visible = false

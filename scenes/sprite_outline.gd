@@ -9,7 +9,6 @@ signal move_ended()
 const BORDER_WIDTH := 2
 
 var selected_button: Button
-var parent_global_rect: Rect2
 var selected := false
 var mouse_offset: Vector2
 var is_preview := false
@@ -31,7 +30,7 @@ func _input(event: InputEvent) -> void:
 			return
 		selected_button = null
 		set_process(false)
-		emit_signal("outline_resized", original_rect, get_global_rect())
+		emit_signal("outline_resized", original_rect, get_rect())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -49,10 +48,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
-	var mouse: Vector2 = (get_global_mouse_position()).snapped(Vector2.ONE)
+	var mouse: Vector2 = get_parent().get_local_mouse_position().snapped(Vector2.ONE)
+	var parent_rect: Rect2 = get_parent().get_rect()
 	if is_preview:
-		mouse.x = clamp(mouse.x, parent_global_rect.position.x, parent_global_rect.end.x)
-		mouse.y = clamp(mouse.y, parent_global_rect.position.y, parent_global_rect.end.y)
+		mouse.x = clamp(mouse.x, 0, parent_rect.size.x)
+		mouse.y = clamp(mouse.y, 0, parent_rect.size.y)
 		if mouse.x < preview_start.x:
 			if mouse.y < preview_start.y:
 				resize(Vector2(mouse.x, mouse.y), Vector2(preview_start.x - mouse.x, preview_start.y - mouse.y))
@@ -61,36 +61,36 @@ func _process(_delta: float) -> void:
 		elif mouse.y < preview_start.y:
 			resize(Vector2(preview_start.x, mouse.y), Vector2(mouse.x - preview_start.x, preview_start.y - mouse.y))
 		else:
-			resize(preview_start, mouse - rect_global_position)
+			resize(preview_start, mouse - rect_position)
 	elif selected_button:
-		var new_position := rect_global_position
+		var new_position := rect_position
 		var new_size := rect_size
-		var global_rect := get_global_rect()
+		var rect := get_rect()
 		if "Top" in selected_button.name:
-			mouse.y = clamp(mouse.y, parent_global_rect.position.y, global_rect.end.y - 1)
-			new_size.y = global_rect.end.y - mouse.y
+			mouse.y = clamp(mouse.y, 0, rect.end.y - 1)
+			new_size.y = rect.end.y - mouse.y
 			new_position.y = mouse.y
 		elif "Bottom" in selected_button.name:
-			mouse.y = clamp(mouse.y, global_rect.position.y + 1, parent_global_rect.end.y)
-			new_size.y = mouse.y - global_rect.position.y
+			mouse.y = clamp(mouse.y, rect.position.y + 1, parent_rect.size.y)
+			new_size.y = mouse.y - rect.position.y
 		if "Left" in selected_button.name:
-			mouse.x = clamp(mouse.x, parent_global_rect.position.x, global_rect.end.x - 1)
-			new_size.x = global_rect.end.x - mouse.x
+			mouse.x = clamp(mouse.x, 0, rect.end.x - 1)
+			new_size.x = rect.end.x - mouse.x
 			new_position.x = mouse.x
 		elif "Right" in selected_button.name:
-			mouse.x = clamp(mouse.x, global_rect.position.x + 1, parent_global_rect.end.x)
-			new_size.x = mouse.x - global_rect.position.x
+			mouse.x = clamp(mouse.x, rect.position.x + 1, parent_rect.size.x)
+			new_size.x = mouse.x - rect.position.x
 		resize(new_position, new_size)
 	else:
-		var change := mouse - mouse_offset - rect_global_position
-		rect_global_position = mouse - mouse_offset
+		var change := mouse - mouse_offset - rect_position
+		rect_position = mouse - mouse_offset
 		for other_button in get_tree().get_nodes_in_group("sprite_outline"):
 			if not other_button == self and other_button.selected:
-				other_button.rect_global_position += change
+				other_button.rect_position += change
 
 
-func resize(global_position: Vector2, size: Vector2) -> void:
-	rect_global_position = global_position
+func resize(position: Vector2, size: Vector2) -> void:
+	rect_position = position
 	rect_size = size
 	$Top.rect_size.x = size.x + BORDER_WIDTH * 2 - 2
 	$Bottom.rect_size.x = size.x + BORDER_WIDTH * 2 - 2
