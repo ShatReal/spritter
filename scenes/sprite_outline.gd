@@ -33,20 +33,6 @@ func _input(event: InputEvent) -> void:
 		emit_signal("outline_resized", original_rect, get_rect())
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not selected:
-		return
-	if event.is_action_pressed("ui_left"):
-		resize(rect_global_position + Vector2.LEFT, rect_size)
-	elif event.is_action_pressed("ui_right"):
-		resize(rect_global_position + Vector2.RIGHT, rect_size)
-	elif event.is_action_pressed("ui_up"):
-		resize(rect_global_position + Vector2.UP, rect_size)
-	elif event.is_action_pressed("ui_down"):
-		resize(rect_global_position + Vector2.DOWN, rect_size)
-
-
-
 func _process(_delta: float) -> void:
 	var mouse: Vector2 = get_parent().get_local_mouse_position().snapped(Vector2.ONE)
 	var parent_rect: Rect2 = get_parent().get_rect()
@@ -109,7 +95,7 @@ func on_edge_button_down(edge: Button) -> void:
 		return
 	if Input.is_action_pressed("move"):
 		return
-	original_rect = get_global_rect()
+	original_rect = get_rect()
 	set_process(true)
 	selected_button = edge
 	

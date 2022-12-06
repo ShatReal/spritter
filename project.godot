@@ -14,6 +14,11 @@ config/name="Spritter"
 run/main_scene="res://scenes/main.tscn"
 config/icon="res://images/icon.png"
 
+[autoload]
+
+Detect="*res://scenes/detect.gd"
+Auto="*res://scenes/auto.gd"
+
 [debug]
 
 gdscript/warnings/narrowing_conversion=false
