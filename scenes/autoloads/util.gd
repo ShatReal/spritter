@@ -33,3 +33,9 @@ func get_max_vector2(vec1: Vector2, vec2: Vector2) -> Vector2:
 		max(vec1.x, vec2.x),
 		max(vec1.y, vec2.y)
 	)
+
+
+func remove_file_extension(file: String) -> String:
+	var arr := file.split(".")
+	arr.remove(arr.size() - 1)
+	return arr.join(".")

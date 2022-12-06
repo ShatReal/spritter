@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
+[ext_resource path="res://resources/main_theme.tres" type="Theme" id=1]
 [ext_resource path="res://scenes/main/main.gd" type="Script" id=2]
 [ext_resource path="res://images/transparent.png" type="Texture" id=3]
 
@@ -8,7 +9,16 @@
 [node name="Main" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource( 1 )
 script = ExtResource( 2 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0.192157, 0.341176, 0.172549, 1 )
 __meta__ = {
 "_edit_lock_": true
 }
@@ -23,82 +33,83 @@ __meta__ = {
 
 [node name="TopBar" type="PanelContainer" parent="Layout"]
 margin_right = 1024.0
-margin_bottom = 34.0
+margin_bottom = 21.0
 
 [node name="Buttons" type="HBoxContainer" parent="Layout/TopBar"]
-margin_left = 7.0
-margin_top = 7.0
-margin_right = 1017.0
-margin_bottom = 27.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = 1022.0
+margin_bottom = 19.0
 custom_constants/separation = 0
 
 [node name="FileButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_right = 35.0
-margin_bottom = 20.0
+margin_right = 22.0
+margin_bottom = 17.0
 text = "File"
 items = [ "Open File", null, 0, false, false, 0, 0, null, "", false, "Close File", null, 0, false, true, 1, 0, null, "", false, "Save", null, 0, false, true, 2, 0, null, "", false, "Load", null, 0, false, false, 3, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="SelectButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 35.0
-margin_right = 86.0
-margin_bottom = 20.0
+margin_left = 22.0
+margin_right = 57.0
+margin_bottom = 17.0
 text = "Select"
 items = [ "Combine Selected", null, 0, false, false, 0, 0, null, "", false ]
+switch_on_hover = true
 
 [node name="SpriteButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 86.0
-margin_right = 135.0
-margin_bottom = 20.0
+margin_left = 57.0
+margin_right = 92.0
+margin_bottom = 17.0
 text = "Sprite"
 items = [ "Cut by Grid", null, 0, false, false, 0, 0, null, "", false, "Detect Sprites", null, 0, false, false, 1, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="ExportButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 135.0
-margin_right = 187.0
-margin_bottom = 20.0
+margin_left = 92.0
+margin_right = 130.0
+margin_bottom = 17.0
 text = "Export"
-items = [ "Export as Individual Images", null, 0, false, false, 0, 0, null, "", false ]
+items = [ "Export as Individual Sprites", null, 0, false, false, 0, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="HelpButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 187.0
-margin_right = 229.0
-margin_bottom = 20.0
+margin_left = 130.0
+margin_right = 155.0
+margin_bottom = 17.0
 text = "Help"
 items = [ "Help", null, 0, false, false, 0, 0, null, "", false, "Credits", null, 0, false, false, 1, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="Main" type="HBoxContainer" parent="Layout"]
-margin_top = 34.0
+margin_top = 21.0
 margin_right = 1024.0
-margin_bottom = 558.0
+margin_bottom = 570.0
 size_flags_vertical = 3
 custom_constants/separation = 0
 
 [node name="Tree" type="Tree" parent="Layout/Main"]
 margin_right = 150.0
-margin_bottom = 524.0
+margin_bottom = 549.0
 rect_min_size = Vector2( 150, 0 )
 select_mode = 2
 
 [node name="Scroll" type="ScrollContainer" parent="Layout/Main"]
 margin_left = 150.0
-margin_right = 925.0
-margin_bottom = 524.0
+margin_right = 947.0
+margin_bottom = 549.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Images" type="Control" parent="Layout/Main/Scroll"]
-margin_right = 775.0
-margin_bottom = 524.0
+margin_right = 797.0
+margin_bottom = 549.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -112,14 +123,14 @@ stretch_mode = 2
 mouse_filter = 0
 
 [node name="Sidebar" type="VBoxContainer" parent="Layout/Main"]
-margin_left = 925.0
+margin_left = 947.0
 margin_right = 1024.0
-margin_bottom = 524.0
+margin_bottom = 549.0
 custom_constants/separation = 0
 
 [node name="EditSprites" type="Button" parent="Layout/Main/Sidebar"]
-margin_right = 99.0
-margin_bottom = 20.0
+margin_right = 77.0
+margin_bottom = 17.0
 focus_mode = 0
 toggle_mode = true
 pressed = true
@@ -127,50 +138,50 @@ group = SubResource( 1 )
 text = "Edit Sprites"
 
 [node name="SelectSprites" type="Button" parent="Layout/Main/Sidebar"]
-margin_top = 20.0
-margin_right = 99.0
-margin_bottom = 40.0
+margin_top = 17.0
+margin_right = 77.0
+margin_bottom = 34.0
 focus_mode = 0
 toggle_mode = true
 group = SubResource( 1 )
 text = "Select Sprites"
 
 [node name="AutoSprite" type="Button" parent="Layout/Main/Sidebar"]
-margin_top = 40.0
-margin_right = 99.0
-margin_bottom = 60.0
+margin_top = 34.0
+margin_right = 77.0
+margin_bottom = 51.0
 focus_mode = 0
 toggle_mode = true
 group = SubResource( 1 )
 text = "Auto Sprite"
 
 [node name="BottomBar" type="PanelContainer" parent="Layout"]
-margin_top = 558.0
+margin_top = 570.0
 margin_right = 1024.0
-margin_bottom = 586.0
+margin_bottom = 587.0
 
 [node name="HBox" type="HBoxContainer" parent="Layout/BottomBar"]
-margin_left = 7.0
-margin_top = 7.0
-margin_right = 1017.0
-margin_bottom = 21.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = 1022.0
+margin_bottom = 15.0
 custom_constants/separation = 0
 
 [node name="Zoom" type="Label" parent="Layout/BottomBar/HBox"]
-margin_right = 40.0
-margin_bottom = 14.0
+margin_right = 29.0
+margin_bottom = 13.0
 text = "100% "
 
 [node name="MousePos" type="Label" parent="Layout/BottomBar/HBox"]
-margin_left = 978.0
-margin_right = 1010.0
-margin_bottom = 14.0
+margin_left = 994.0
+margin_right = 1020.0
+margin_bottom = 13.0
 size_flags_horizontal = 10
 text = "(0, 0)"
 align = 2
 
 [node name="ProgressBar" type="ProgressBar" parent="Layout"]
-margin_top = 586.0
+margin_top = 587.0
 margin_right = 1024.0
 margin_bottom = 600.0
 
@@ -250,12 +261,14 @@ bbcode_text = "[center]Credits
 Lead Dev Exuin (Emily2)
 Code from Wasted, KamiGrave
 Name, mascot from L4Vo5
-Based on code from [url=https://github.com/ForkandBeard/Alferd-Spritesheet-Unpacker]Alferd Spritesheet Unpacker[/url][/center]"
+Based on code from [url=https://github.com/ForkandBeard/Alferd-Spritesheet-Unpacker]Alferd Spritesheet Unpacker[/url]
+Font - [url=https://managore.itch.io/m5x7]m5x7[/url][/center]"
 text = "Credits
 Lead Dev Exuin (Emily2)
 Code from Wasted, KamiGrave
 Name, mascot from L4Vo5
-Based on code from Alferd Spritesheet Unpacker"
+Based on code from Alferd Spritesheet Unpacker
+Font - m5x7"
 
 [node name="Cut" type="PopupPanel" parent="."]
 anchor_left = 0.5

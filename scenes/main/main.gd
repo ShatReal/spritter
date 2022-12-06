@@ -107,6 +107,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			file_dialog.mode = FileDialog.MODE_SAVE_FILE
 			file_dialog.filters = PoolStringArray(["*.spritter"])
 			file_action = "save"
+			file_dialog.current_file = Util.remove_file_extension(file_dialog.current_file)
 			file_dialog.popup()
 	elif event.is_action_pressed("select_all"):
 		for node in get_tree().get_nodes_in_group("sprite_outline"):
@@ -342,18 +343,15 @@ func add_history(dict: Dictionary) -> void:
 		history_index -= 1
 
 
-func load_image(d = null) -> void:
-	if d:
-		image = d
-	else:
+func load_image(path := "", d = null) -> void:
+	if path:
 		image = Image.new()
-		if image.load(save_path) != OK:
+		if image.load(path) != OK:
 			show_note("Error loading image!")
 			return
+	else:
+		image = d
 	close_image()
-	var arr := save_path.get_file().split(".")
-	arr.remove(arr.size() -1)
-	image_name = arr.join(".")
 	image_size = image.get_size()
 	image_data = image.get_data()
 	for i in select_button.get_popup().get_item_count():
@@ -420,7 +418,9 @@ func on_outside_sprite_gui_input(event: InputEvent) -> void:
 		is_drawing = false
 		if action == "select_sprites":
 			return
-		sprites[current_being_created_uid].outline.set_preview(false)
+		if current_being_created_uid != -1:
+			sprites[current_being_created_uid].outline.set_preview(false)
+			current_being_created_uid = -1
 	elif event.is_action_pressed("click") and Rect2(Vector2.ZERO, image_size).has_point(mouse) and action == "auto_sprite":
 		if not Input.is_action_pressed("shift"):
 			for button in get_tree().get_nodes_in_group("sprite_outline"):
@@ -486,7 +486,6 @@ func close_image() -> void:
 	sprites = {}
 	history = []
 	history_index = -1
-	save_path = ""
 	tree.hide_root = true
 
 
@@ -498,6 +497,7 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 					file_dialog.mode = FileDialog.MODE_OPEN_FILE
 					file_action = "open"
 					file_dialog.filters = PoolStringArray(["*.png"])
+					file_dialog.current_file = Util.remove_file_extension(file_dialog.current_file)
 					file_dialog.popup()
 				1:
 					close_image()
@@ -505,11 +505,13 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 					file_dialog.mode = FileDialog.MODE_SAVE_FILE
 					file_dialog.filters = PoolStringArray(["*.spritter"])
 					file_action = "save"
+					file_dialog.current_file = Util.remove_file_extension(file_dialog.current_file)
 					file_dialog.popup()
 				3:
 					file_dialog.mode = FileDialog.MODE_OPEN_FILE
 					file_dialog.filters = PoolStringArray(["*.spritter"])
 					file_action = "load"
+					file_dialog.current_file = Util.remove_file_extension(file_dialog.current_file)
 					file_dialog.popup()
 		"SelectButton":
 			match id:
@@ -652,7 +654,7 @@ func _on_MoveTimer_timeout() -> void:
 
 
 func on_sheet_loaded(i_data: Image, sprite_data: Array) -> void:
-	load_image(i_data)
+	load_image("", i_data)
 	for sprite in sprite_data:
 		make_sprite_outline(sprite.rect.position, sprite.rect.size, sprite.name, false, sprite.uid, sprite.index)
 
@@ -662,11 +664,14 @@ func on_region_thread_finished(num_threads: int) -> void:
 
 
 func _on_FileDialog_file_selected(path: String) -> void:
-	save_path = path
+	image_name = Util.remove_file_extension(path.get_file())
 	match file_action:
 		"open":
-			load_image()
+			save_path = ""
+			load_image(path)
 		"save":
+			save_path = path
 			SaveLoad.save_sheet(path, image, sprites)
 		"load":
+			save_path = path
 			SaveLoad.load_sheet(path)
