@@ -157,4 +157,4 @@ func set_preview(on: bool) -> void:
 
 func on_edge_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and not Input.is_action_pressed("click"):
-		get_tree().current_scene.outside_sprite_gui_input(event)
+		get_tree().current_scene.on_outside_sprite_gui_input(event)

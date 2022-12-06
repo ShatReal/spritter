@@ -11,14 +11,15 @@ config_version=4
 [application]
 
 config/name="Spritter"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/main/main.tscn"
 config/icon="res://images/icon.png"
 
 [autoload]
 
-Detect="*res://scenes/detect.gd"
-Auto="*res://scenes/auto.gd"
-SaveLoad="*res://scenes/save_load.gd"
+Detect="*res://scenes/autoloads/detect.gd"
+Auto="*res://scenes/autoloads/auto.gd"
+SaveLoad="*res://scenes/autoloads/save_load.gd"
+Util="*res://scenes/autoloads/util.gd"
 
 [debug]
 

@@ -28,16 +28,6 @@ func _exit_tree() -> void:
 
 func detect(image_size: Vector2, image_data: PoolByteArray) -> void:
 	all_rects = []
-#	var bitmap := BitMap.new()
-#	bitmap.create_from_image_alpha(image, bitmap_threshold)
-#	for i in bitmap.opaque_to_polygons(Rect2(Vector2(), bitmap.get_size())):
-#		var arrx := []
-#		var arry := []
-#		for j in i:
-#			arrx.append(j.x)
-#			arry.append(j.y)
-#		all_rects.append(Rect2(arrx.min(), arry.min(), arrx.max() - arrx.min(), arry.max() - arry.min()))
-#	display_sprites()
 	var y_size: int = ceil(image_size.y / sub_region_count)
 	var x_size: int = ceil(image_size.x / sub_region_count)
 	regions = []
