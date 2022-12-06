@@ -40,10 +40,18 @@ text = "File"
 items = [ "Open File", null, 0, false, false, 0, 0, null, "", false, "Close File", null, 0, false, true, 1, 0, null, "", false, "Save", null, 0, false, true, 2, 0, null, "", false, "Load", null, 0, false, false, 3, 0, null, "", false ]
 switch_on_hover = true
 
-[node name="SpriteButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
+[node name="SelectButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
 margin_left = 35.0
-margin_right = 84.0
+margin_right = 86.0
+margin_bottom = 20.0
+text = "Select"
+items = [ "Combine Selected", null, 0, false, false, 0, 0, null, "", false ]
+
+[node name="SpriteButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
+unique_name_in_owner = true
+margin_left = 86.0
+margin_right = 135.0
 margin_bottom = 20.0
 text = "Sprite"
 items = [ "Cut by Grid", null, 0, false, false, 0, 0, null, "", false, "Detect Sprites", null, 0, false, false, 1, 0, null, "", false ]
@@ -51,8 +59,8 @@ switch_on_hover = true
 
 [node name="ExportButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 84.0
-margin_right = 136.0
+margin_left = 135.0
+margin_right = 187.0
 margin_bottom = 20.0
 text = "Export"
 items = [ "Export as Individual Images", null, 0, false, false, 0, 0, null, "", false ]
@@ -60,8 +68,8 @@ switch_on_hover = true
 
 [node name="HelpButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 136.0
-margin_right = 178.0
+margin_left = 187.0
+margin_right = 229.0
 margin_bottom = 20.0
 text = "Help"
 items = [ "Help", null, 0, false, false, 0, 0, null, "", false, "Credits", null, 0, false, false, 1, 0, null, "", false ]

@@ -18,6 +18,7 @@ config/icon="res://images/icon.png"
 
 Detect="*res://scenes/detect.gd"
 Auto="*res://scenes/auto.gd"
+SaveLoad="*res://scenes/save_load.gd"
 
 [debug]
 

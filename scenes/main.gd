@@ -37,6 +37,7 @@ var movement_temp: Array
 
 onready var top_buttons := $Layout/TopBar/Buttons
 onready var file_button := $"%FileButton"
+onready var select_button := $"%SelectButton"
 onready var sprite_button := $"%SpriteButton"
 onready var export_button := $"%ExportButton"
 
@@ -143,7 +144,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		undo()
 
 
-
 func redo() -> void:
 	history_index += 1
 	if history.size() == history_index:
@@ -165,6 +165,10 @@ func redo() -> void:
 		"rename":
 			sprites[a.uid].name = a.new
 			sprites[a.uid].tree_item.set_text(0, a.new)
+		"combine":
+			for dict in a.deleted:
+				delete_outline(dict.uid)
+			make_sprite_outline(a.result.rect.position, a.result.rect.size, a.result.name, false, a.result.uid, a.result.index)
 
 
 func undo() -> void:
@@ -186,6 +190,10 @@ func undo() -> void:
 		"rename":
 			sprites[a.uid].name = a.old
 			sprites[a.uid].tree_item.set_text(0, a.old)
+		"combine":
+			delete_outline(a.result.uid)
+			for dict in a.deleted:
+				make_sprite_outline(dict.rect.position, dict.rect.size, dict.name, false, dict.uid, dict.index)
 	history_index -= 1
 
 
@@ -246,10 +254,6 @@ func delete_outlines() -> void:
 		tree_item.free()
 	dict.outlines.sort_custom(self, "sort_by_index")
 	add_history(dict)
-
-
-func sort_by_index(a: Dictionary, b: Dictionary) -> bool:
-	return a.index < b.index
 
 
 func get_outline_index(tree_item: TreeItem) -> int:
@@ -382,6 +386,8 @@ func load_image(path, d = null) -> void:
 	set_image_name(path)
 	image_size = image.get_size()
 	image_data = image.get_data()
+	for i in select_button.get_popup().get_item_count():
+		sprite_button.get_popup().set_item_disabled(i, false)
 	for i in sprite_button.get_popup().get_item_count():
 		sprite_button.get_popup().set_item_disabled(i, false)
 	for i in export_button.get_popup().get_item_count():
@@ -439,20 +445,14 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 	var mouse: Vector2 = image_node.get_local_mouse_position().snapped(Vector2.ONE)
 	if not Input.is_action_pressed("move") and event.is_action_released("click"):
 		is_drawing = false
-		if Input.is_action_pressed("shift"):
+		if action == "select_sprites":
 			return
-		for button in get_tree().get_nodes_in_group("sprite_outline"):
-			if button.selected:
-				if button.is_preview:
-					button.set_preview(false)
-					on_outlines_created([current_being_created_uid])
-					current_being_created_uid = -1
-				else:
-					button.select(false)
-		if action == "auto_sprite" and current_being_created_uid != -1:
-			sprites[current_being_created_uid].outline.select(true)
-			current_being_created_uid = -1
+		sprites[current_being_created_uid].outline.set_preview(false)
 	elif not Input.is_action_pressed("move") and event.is_action_pressed("click") and is_mouse_inside_image() and action == "auto_sprite":
+		if not Input.is_action_pressed("shift"):
+			for button in get_tree().get_nodes_in_group("sprite_outline"):
+				if button.selected:
+					button.select(false)
 		var rect := Auto.make_auto_sprite(mouse, image_size, image_data)
 		if rect.get_area() == 0:
 			return
@@ -464,9 +464,10 @@ func outside_sprite_gui_input(event: InputEvent) -> void:
 		match action:
 			"edit_sprites":
 				is_drawing = true
-				for button in get_tree().get_nodes_in_group("sprite_outline"):
-					if button.selected:
-						button.select(false)
+				if not Input.is_action_pressed("shift"):
+					for button in get_tree().get_nodes_in_group("sprite_outline"):
+						if button.selected:
+							button.select(false)
 				current_being_created_uid = make_sprite_outline(mouse, Vector2.ONE, str(name_counter), true)
 				name_counter += 1
 			"select_sprites":
@@ -503,6 +504,8 @@ func _on_Label_meta_clicked(meta) -> void:
 
 func close_image() -> void:
 	background.hide()
+	for i in select_button.get_popup().get_item_count():
+		sprite_button.get_popup().set_item_disabled(i, true)
 	for i in sprite_button.get_popup().get_item_count():
 		sprite_button.get_popup().set_item_disabled(i, true)
 	for i in export_button.get_popup().get_item_count():
@@ -546,6 +549,10 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 					file_dialog.filters = PoolStringArray(["*.spritter"])
 					file_action = "load"
 					file_dialog.popup()
+		"SelectButton":
+			match id:
+				0:
+					combine_selected()
 		"SpriteButton":
 			match id:
 				0:
@@ -564,6 +571,42 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 					$Help.popup()
 				1:
 					$Credits.popup()
+
+
+func combine_selected() -> void:
+	var result: Rect2
+	var to_delete := []
+	for outline in get_tree().get_nodes_in_group("sprite_outline"):
+		if not outline.selected:
+			continue
+		var uid := get_uid_from_object(outline)
+		to_delete.append({
+			"uid": uid,
+			"rect": outline.get_rect(),
+			"index": get_outline_index(sprites[uid].tree_item),
+			"name": sprites[uid].name,
+		})
+		if result.get_area() == 0:
+			result = outline.get_rect()
+		else:
+			result = result.merge(outline.get_rect())
+	if to_delete.size() < 2:
+		return
+	to_delete.sort_custom(self, "sort_by_index")
+	for dict in to_delete:
+		delete_outline(dict.uid)
+	var result_uid := make_sprite_outline(result.position, result.size, str(name_counter))
+	add_history({
+		"action": "combine",
+		"deleted": to_delete,
+		"result": {
+			"uid": result_uid,
+			"rect": result,
+			"index": get_outline_index(sprites[result_uid].tree_item),
+			"name": str(name_counter)
+		}
+	})
+	name_counter += 1
 
 
 func on_sidebar_button_pressed(i: int) -> void:
@@ -620,6 +663,36 @@ func _process(_delta: float) -> void:
 	$Layout/BottomBar/HBox/MousePos.text = "(%s, %s)" % [mouse.x, mouse.y]
 
 
+func show_note(message: String) -> void:
+	$Note.dialog_text = message
+	$Note.popup()
+
+
+func _on_Tree_item_edited() -> void:
+	var uid := get_uid_from_object(tree.get_selected())
+	add_history({
+		"action": "rename",
+		"uid": uid,
+		"old": sprites[uid].name,
+		"new": tree.get_selected().get_text(0),
+	})
+	sprites[uid].name = tree.get_selected().get_text(0)
+
+
+func move_all_selected_outlines() -> void:
+	var input := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").snapped(Vector2.ONE)
+	for outline in get_tree().get_nodes_in_group("sprite_outline"):
+		if outline.selected:
+			outline.rect_position += input
+
+
+func _on_MoveTimer_timeout() -> void:
+	if is_equal_approx($MoveTimer.wait_time, MOVE_TIME_0):
+		$MoveTimer.wait_time = MOVE_TIME_1
+	move_all_selected_outlines()
+	$MoveTimer.start()
+
+
 func save_sheet(path: String) -> void:
 	var f := File.new()
 	f.open(path, File.WRITE)
@@ -668,32 +741,7 @@ func load_sheet(path: String) -> void:
 		uids.append(make_sprite_outline(sprite.rect.position, sprite.rect.size, sprite.name, false, sprite.uid, sprite.index))
 	on_outlines_created(uids)
 	save_path = path
+	
 
-func show_note(message: String) -> void:
-	$Note.dialog_text = message
-	$Note.popup()
-
-
-func _on_Tree_item_edited() -> void:
-	var uid := get_uid_from_object(tree.get_selected())
-	add_history({
-		"action": "rename",
-		"uid": uid,
-		"old": sprites[uid].name,
-		"new": tree.get_selected().get_text(0),
-	})
-	sprites[uid].name = tree.get_selected().get_text(0)
-
-
-func move_all_selected_outlines() -> void:
-	var input := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down").snapped(Vector2.ONE)
-	for outline in get_tree().get_nodes_in_group("sprite_outline"):
-		if outline.selected:
-			outline.rect_position += input
-
-
-func _on_MoveTimer_timeout() -> void:
-	if is_equal_approx($MoveTimer.wait_time, MOVE_TIME_0):
-		$MoveTimer.wait_time = MOVE_TIME_1
-	move_all_selected_outlines()
-	$MoveTimer.start()
+func sort_by_index(a: Dictionary, b: Dictionary) -> bool:
+	return a.index < b.index
