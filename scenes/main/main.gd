@@ -397,8 +397,8 @@ func _on_FileDialog_dir_selected(dir: String) -> void:
 	var directory := Directory.new()
 	if not directory.dir_exists(dir + "/%s" % image_name):
 		directory.make_dir(dir + "/%s" % image_name)
-	for child in image_node.get_children():
-		image.get_rect(child.get_rect()).save_png(dir + "/%s/%s.png" % [image_name, child.get_index()])
+	for uid in sprites:
+		image.get_rect(sprites[uid].outline.get_rect()).save_png(dir + "/%s/%s.png" % [image_name, sprites[uid].name])
 
 
 func on_outside_sprite_gui_input(event: InputEvent) -> void:
@@ -420,6 +420,7 @@ func on_outside_sprite_gui_input(event: InputEvent) -> void:
 			return
 		if current_being_created_uid != -1:
 			sprites[current_being_created_uid].outline.set_preview(false)
+			on_outlines_created([current_being_created_uid])
 			current_being_created_uid = -1
 	elif event.is_action_pressed("click") and Rect2(Vector2.ZERO, image_size).has_point(mouse) and action == "auto_sprite":
 		if not Input.is_action_pressed("shift"):
@@ -625,7 +626,6 @@ func _on_Tree_nothing_selected() -> void:
 	while next:
 		next.deselect(0)
 		next = tree.get_next_selected(null)
-		
 
 
 func _on_Tree_item_edited() -> void:
