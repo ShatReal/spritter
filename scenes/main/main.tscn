@@ -1,8 +1,7 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://resources/main_theme.tres" type="Theme" id=1]
 [ext_resource path="res://scenes/main/main.gd" type="Script" id=2]
-[ext_resource path="res://images/transparent.png" type="Texture" id=3]
 
 [sub_resource type="ButtonGroup" id=1]
 
@@ -33,104 +32,82 @@ __meta__ = {
 
 [node name="TopBar" type="PanelContainer" parent="Layout"]
 margin_right = 1024.0
-margin_bottom = 21.0
+margin_bottom = 27.0
 
 [node name="Buttons" type="HBoxContainer" parent="Layout/TopBar"]
 margin_left = 2.0
 margin_top = 2.0
 margin_right = 1022.0
-margin_bottom = 19.0
+margin_bottom = 25.0
 custom_constants/separation = 0
 
 [node name="FileButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_right = 22.0
-margin_bottom = 17.0
+margin_right = 32.0
+margin_bottom = 23.0
 text = "File"
 items = [ "Open File", null, 0, false, false, 0, 0, null, "", false, "Close File", null, 0, false, true, 1, 0, null, "", false, "Save", null, 0, false, true, 2, 0, null, "", false, "Load", null, 0, false, false, 3, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="SelectButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 22.0
-margin_right = 57.0
-margin_bottom = 17.0
+margin_left = 32.0
+margin_right = 84.0
+margin_bottom = 23.0
 text = "Select"
-items = [ "Combine Selected", null, 0, false, false, 0, 0, null, "", false ]
+items = [ "Combine Selected", null, 0, false, true, 0, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="SpriteButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 57.0
-margin_right = 92.0
-margin_bottom = 17.0
+margin_left = 84.0
+margin_right = 136.0
+margin_bottom = 23.0
 text = "Sprite"
-items = [ "Cut by Grid", null, 0, false, false, 0, 0, null, "", false, "Detect Sprites", null, 0, false, false, 1, 0, null, "", false ]
+items = [ "Cut by Grid", null, 0, false, true, 0, 0, null, "", false, "Detect Sprites", null, 0, false, true, 1, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="ExportButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 92.0
-margin_right = 130.0
-margin_bottom = 17.0
+margin_left = 136.0
+margin_right = 192.0
+margin_bottom = 23.0
 text = "Export"
-items = [ "Export as Individual Sprites", null, 0, false, false, 0, 0, null, "", false ]
+items = [ "Export as Individual Sprites", null, 0, false, true, 0, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="HelpButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
 unique_name_in_owner = true
-margin_left = 130.0
-margin_right = 155.0
-margin_bottom = 17.0
+margin_left = 192.0
+margin_right = 228.0
+margin_bottom = 23.0
 text = "Help"
 items = [ "Help", null, 0, false, false, 0, 0, null, "", false, "Credits", null, 0, false, false, 1, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="Main" type="HBoxContainer" parent="Layout"]
-margin_top = 21.0
+margin_top = 27.0
 margin_right = 1024.0
-margin_bottom = 570.0
+margin_bottom = 558.0
 size_flags_vertical = 3
 custom_constants/separation = 0
 
-[node name="Tree" type="Tree" parent="Layout/Main"]
-margin_right = 150.0
-margin_bottom = 549.0
-rect_min_size = Vector2( 150, 0 )
-select_mode = 2
-
-[node name="Scroll" type="ScrollContainer" parent="Layout/Main"]
-margin_left = 150.0
-margin_right = 947.0
-margin_bottom = 549.0
-mouse_filter = 2
+[node name="Tabs" type="TabContainer" parent="Layout/Main"]
+margin_right = 907.0
+margin_bottom = 531.0
 size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="Images" type="Control" parent="Layout/Main/Scroll"]
-margin_right = 797.0
-margin_bottom = 549.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="Background" type="TextureRect" parent="Layout/Main/Scroll/Images"]
-visible = false
-texture = ExtResource( 3 )
-expand = true
-stretch_mode = 2
-
-[node name="Image" type="TextureRect" parent="Layout/Main/Scroll/Images"]
-mouse_filter = 0
+tab_align = 0
+drag_to_rearrange_enabled = true
 
 [node name="Sidebar" type="VBoxContainer" parent="Layout/Main"]
-margin_left = 947.0
+margin_left = 907.0
 margin_right = 1024.0
-margin_bottom = 549.0
+margin_bottom = 531.0
 custom_constants/separation = 0
 
 [node name="EditSprites" type="Button" parent="Layout/Main/Sidebar"]
-margin_right = 77.0
-margin_bottom = 17.0
+margin_right = 117.0
+margin_bottom = 23.0
 focus_mode = 0
 toggle_mode = true
 pressed = true
@@ -138,50 +115,55 @@ group = SubResource( 1 )
 text = "Edit Sprites"
 
 [node name="SelectSprites" type="Button" parent="Layout/Main/Sidebar"]
-margin_top = 17.0
-margin_right = 77.0
-margin_bottom = 34.0
+margin_top = 23.0
+margin_right = 117.0
+margin_bottom = 46.0
 focus_mode = 0
 toggle_mode = true
 group = SubResource( 1 )
 text = "Select Sprites"
 
 [node name="AutoSprite" type="Button" parent="Layout/Main/Sidebar"]
-margin_top = 34.0
-margin_right = 77.0
-margin_bottom = 51.0
+margin_top = 46.0
+margin_right = 117.0
+margin_bottom = 69.0
 focus_mode = 0
 toggle_mode = true
 group = SubResource( 1 )
 text = "Auto Sprite"
 
-[node name="BottomBar" type="PanelContainer" parent="Layout"]
-margin_top = 570.0
+[node name="Control" type="Control" parent="Layout/Main"]
+margin_left = 1024.0
 margin_right = 1024.0
-margin_bottom = 587.0
+margin_bottom = 531.0
+
+[node name="BottomBar" type="PanelContainer" parent="Layout"]
+margin_top = 558.0
+margin_right = 1024.0
+margin_bottom = 581.0
 
 [node name="HBox" type="HBoxContainer" parent="Layout/BottomBar"]
 margin_left = 2.0
 margin_top = 2.0
 margin_right = 1022.0
-margin_bottom = 15.0
+margin_bottom = 21.0
 custom_constants/separation = 0
 
 [node name="Zoom" type="Label" parent="Layout/BottomBar/HBox"]
-margin_right = 29.0
-margin_bottom = 13.0
+margin_right = 44.0
+margin_bottom = 19.0
 text = "100% "
 
 [node name="MousePos" type="Label" parent="Layout/BottomBar/HBox"]
-margin_left = 994.0
+margin_left = 979.0
 margin_right = 1020.0
-margin_bottom = 13.0
+margin_bottom = 19.0
 size_flags_horizontal = 10
 text = "(0, 0)"
 align = 2
 
 [node name="ProgressBar" type="ProgressBar" parent="Layout"]
-margin_top = 587.0
+margin_top = 581.0
 margin_right = 1024.0
 margin_bottom = 600.0
 
@@ -200,7 +182,7 @@ mode = 0
 access = 2
 filters = PoolStringArray( "*.png" )
 
-[node name="Note" type="ConfirmationDialog" parent="."]
+[node name="Note" type="AcceptDialog" parent="."]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -210,6 +192,7 @@ margin_top = -100.0
 margin_right = 150.0
 margin_bottom = 100.0
 rect_min_size = Vector2( 300, 200 )
+resizable = true
 dialog_autowrap = true
 
 [node name="Help" type="PopupPanel" parent="."]
@@ -368,19 +351,13 @@ margin_bottom = 184.0
 size_flags_horizontal = 4
 text = "Ok"
 
-[node name="MoveTimer" type="Timer" parent="."]
-wait_time = 0.2
-one_shot = true
+[node name="Confirm" type="ConfirmationDialog" parent="."]
+margin_right = 200.0
+margin_bottom = 70.0
+resizable = true
 
-[connection signal="item_edited" from="Layout/Main/Tree" to="." method="_on_Tree_item_edited"]
-[connection signal="multi_selected" from="Layout/Main/Tree" to="." method="_on_Tree_multi_selected"]
-[connection signal="nothing_selected" from="Layout/Main/Tree" to="." method="_on_Tree_nothing_selected"]
-[connection signal="gui_input" from="Layout/Main/Scroll" to="." method="on_outside_sprite_gui_input"]
-[connection signal="gui_input" from="Layout/Main/Scroll/Images" to="." method="on_outside_sprite_gui_input"]
-[connection signal="gui_input" from="Layout/Main/Scroll/Images/Image" to="." method="on_outside_sprite_gui_input"]
-[connection signal="resized" from="Layout/Main/Scroll/Images/Image" to="." method="_on_Image_resized"]
+[connection signal="tab_changed" from="Layout/Main/Tabs" to="." method="_on_Tabs_tab_changed"]
 [connection signal="dir_selected" from="FileDialog" to="." method="_on_FileDialog_dir_selected"]
 [connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
 [connection signal="meta_clicked" from="Credits/Label" to="." method="_on_Label_meta_clicked"]
 [connection signal="pressed" from="Cut/VBox/CutOk" to="." method="_on_CutOk_pressed"]
-[connection signal="timeout" from="MoveTimer" to="." method="_on_MoveTimer_timeout"]

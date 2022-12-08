@@ -21,7 +21,6 @@ func _ready() -> void:
 	set_process(false)
 	for child in get_children():
 		child.connect("button_down", self, "on_edge_button_down", [child])
-		child.connect("gui_input", self, "on_edge_gui_input")
 
 
 func _input(event: InputEvent) -> void:
@@ -70,8 +69,8 @@ func _process(_delta: float) -> void:
 	else:
 		var change := mouse - mouse_offset - rect_position
 		rect_position = mouse - mouse_offset
-		for other_button in get_tree().get_nodes_in_group("sprite_outline"):
-			if not other_button == self and other_button.selected:
+		for other_button in get_parent().get_children():
+			if other_button.is_in_group("sprite_outline") and not other_button == self and other_button.selected:
 				other_button.rect_position += change
 
 
@@ -91,8 +90,6 @@ func resize(position: Vector2, size: Vector2) -> void:
 
 
 func on_edge_button_down(edge: Button) -> void:
-	if get_tree().current_scene.action != "edit_sprites":
-		return
 	if Input.is_action_pressed("move"):
 		return
 	original_rect = get_rect()
@@ -142,9 +139,9 @@ func _on_SpriteOutline_pressed() -> void:
 		return
 	if not is_moving:
 		if not Input.is_action_pressed("shift"):
-			for other_sprite in get_tree().get_nodes_in_group("sprite_outline"):
-				if not other_sprite == self and other_sprite.selected:
-					other_sprite.select(false)
+			for other_button in get_parent().get_children():
+				if other_button.is_in_group("sprite_outline") and not other_button == self and other_button.selected:
+					other_button.select(false)
 	else:
 		is_moving = false
 		emit_signal("move_ended")
@@ -155,6 +152,14 @@ func set_preview(on: bool) -> void:
 	set_process(on)
 
 
-func on_edge_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and not Input.is_action_pressed("click"):
-		get_tree().current_scene.on_outside_sprite_gui_input(event)
+func enable(on: bool) -> void:
+	if on:
+		mouse_filter = Control.MOUSE_FILTER_STOP
+	else:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for button in get_children():
+		if on:
+			button.mouse_filter = Control.MOUSE_FILTER_STOP
+		else:
+			button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			

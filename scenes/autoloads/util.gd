@@ -1,8 +1,6 @@
 extends Node
 
 
-var tree: Tree
-
 
 func sort_by_index(a: Dictionary, b: Dictionary) -> bool:
 	return a.index < b.index
@@ -28,12 +26,14 @@ func get_uid_from_object(object, sprites: Dictionary) -> int:
 	return -1 # Could not find uid
 
 
-func get_max_vector2(vec1: Vector2, vec2: Vector2) -> Vector2:
-	return Vector2(
-		max(vec1.x, vec2.x),
-		max(vec1.y, vec2.y)
-	)
-
+func get_max_vector2(vectors: Array) -> Vector2:
+	var max_vec := Vector2.ZERO
+	for vector in vectors:
+		if vector.x > max_vec.x:
+			max_vec.x = vector.x
+		if vector.y > max_vec.y:
+			max_vec.y = vector.y
+	return max_vec
 
 func remove_file_extension(file: String) -> String:
 	var arr := file.split(".")

@@ -2,7 +2,7 @@ extends Node
 
 
 signal show_note(message)
-signal sheet_loaded(image_data, sprite_data)
+signal sheet_loaded(image_data, sprite_data, path)
 
 const START := "Spritter"
 
@@ -43,4 +43,4 @@ func load_sheet(path: String) -> void:
 		if not sprite is Dictionary or not sprite.has_all(["uid", "rect", "name", "index"]) or not sprite.uid is int or not sprite.rect is Rect2 or not sprite.name is String or not sprite.index is int:
 			emit_signal("show_note", "Error opening file!")
 			return
-	emit_signal("sheet_loaded", image_data, sprite_data)
+	emit_signal("sheet_loaded", image_data, sprite_data, path)

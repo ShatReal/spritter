@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=15 format=2]
+[gd_resource type="Theme" load_steps=16 format=2]
 
 [ext_resource path="res://fonts/m5x7.ttf" type="DynamicFontData" id=1]
 
@@ -73,6 +73,9 @@ content_margin_left = 4.0
 content_margin_right = 4.0
 bg_color = Color( 0.0745098, 0.164706, 0.0745098, 1 )
 
+[sub_resource type="StyleBoxFlat" id=14]
+bg_color = Color( 0.192157, 0.341176, 0.172549, 1 )
+
 [sub_resource type="StyleBoxFlat" id=13]
 content_margin_left = 2.0
 content_margin_right = 2.0
@@ -87,6 +90,7 @@ border_color = Color( 0.0745098, 0.164706, 0.0745098, 1 )
 expand_margin_top = 20.0
 
 [sub_resource type="DynamicFont" id=1]
+size = 24
 font_data = ExtResource( 1 )
 
 [resource]
@@ -116,10 +120,16 @@ PopupMenu/colors/font_color_disabled = Color( 0.92549, 0.952941, 0.619608, 0.501
 PopupMenu/colors/font_color_hover = Color( 1, 1, 1, 1 )
 PopupMenu/styles/hover = SubResource( 5 )
 PopupMenu/styles/panel = SubResource( 2 )
+PopupPanel/styles/panel = SubResource( 2 )
 ProgressBar/colors/font_color = Color( 0.92549, 0.952941, 0.619608, 1 )
 ProgressBar/styles/bg = SubResource( 6 )
 ProgressBar/styles/fg = SubResource( 7 )
 RichTextLabel/colors/default_color = Color( 0.92549, 0.952941, 0.619608, 1 )
+TabContainer/colors/font_color_bg = Color( 0.564706, 0.662745, 0.333333, 1 )
+TabContainer/colors/font_color_fg = Color( 0.92549, 0.952941, 0.619608, 1 )
+TabContainer/styles/panel = SubResource( 14 )
+TabContainer/styles/tab_bg = SubResource( 4 )
+TabContainer/styles/tab_fg = SubResource( 2 )
 Tree/colors/font_color = Color( 0.92549, 0.952941, 0.619608, 1 )
 Tree/colors/font_color_selected = Color( 1, 1, 1, 1 )
 Tree/styles/bg = SubResource( 2 )

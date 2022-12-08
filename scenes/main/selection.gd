@@ -22,8 +22,8 @@ func _process(_delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_released("click"):
-		for o in get_tree().get_nodes_in_group("sprite_outline"):
-			if o.get_rect().intersects(get_rect()):
+		for o in get_parent().get_children():
+			if o.is_in_group("sprite_outline") and o.get_rect().intersects(get_rect()):
 				o.select(true)
 		queue_free()
 

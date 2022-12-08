@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://images/transparent.png" type="Texture" id=1]
+[ext_resource path="res://scenes/main/tab.gd" type="Script" id=2]
+
+[node name="Tab" type="HBoxContainer"]
+margin_right = 907.0
+margin_bottom = 531.0
+size_flags_horizontal = 3
+custom_constants/separation = 0
+script = ExtResource( 2 )
+
+[node name="Tree" type="Tree" parent="."]
+margin_right = 150.0
+margin_bottom = 531.0
+rect_min_size = Vector2( 150, 0 )
+select_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+margin_left = 150.0
+margin_right = 907.0
+margin_bottom = 531.0
+mouse_filter = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Images" type="Control" parent="Scroll"]
+margin_right = 757.0
+margin_bottom = 531.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Background" type="TextureRect" parent="Scroll/Images"]
+texture = ExtResource( 1 )
+expand = true
+stretch_mode = 2
+
+[node name="Image" type="TextureRect" parent="Scroll/Images"]
+mouse_filter = 0
+
+[node name="MoveTimer" type="Timer" parent="."]
+wait_time = 0.2
+one_shot = true
+
+[connection signal="item_edited" from="Tree" to="." method="_on_Tree_item_edited"]
+[connection signal="multi_selected" from="Tree" to="." method="_on_Tree_multi_selected"]
+[connection signal="nothing_selected" from="Tree" to="." method="_on_Tree_nothing_selected"]
+[connection signal="gui_input" from="Scroll/Images" to="." method="on_outside_sprite_gui_input"]
+[connection signal="gui_input" from="Scroll/Images/Image" to="." method="on_outside_sprite_gui_input"]
+[connection signal="resized" from="Scroll/Images/Image" to="." method="_on_Image_resized"]
+[connection signal="timeout" from="MoveTimer" to="." method="_on_MoveTimer_timeout"]
