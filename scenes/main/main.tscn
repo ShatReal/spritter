@@ -209,10 +209,10 @@ rect_min_size = Vector2( 400, 300 )
 [node name="Label" type="Label" parent="Help"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 4.0
-margin_top = 4.0
-margin_right = -4.0
-margin_bottom = -4.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = -2.0
 text = "Left click and drag to make a new sprite
 Delete or backspace to delete selected sprites
 Space or middle mouse to move around
@@ -235,10 +235,10 @@ rect_min_size = Vector2( 400, 100 )
 [node name="Label" type="RichTextLabel" parent="Credits"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 4.0
-margin_top = 4.0
-margin_right = -4.0
-margin_bottom = -4.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = -2.0
 bbcode_enabled = true
 bbcode_text = "[center]Credits
 Lead Dev Exuin (Emily2)
@@ -267,10 +267,10 @@ rect_min_size = Vector2( 400, 300 )
 [node name="VBox" type="VBoxContainer" parent="Cut"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 4.0
-margin_top = 4.0
-margin_right = -4.0
-margin_bottom = -4.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = -2.0
 alignment = 1
 
 [node name="Top" type="HBoxContainer" parent="Cut/VBox"]
@@ -352,6 +352,7 @@ size_flags_horizontal = 4
 text = "Ok"
 
 [node name="Confirm" type="ConfirmationDialog" parent="."]
+visible = true
 margin_right = 200.0
 margin_bottom = 70.0
 resizable = true

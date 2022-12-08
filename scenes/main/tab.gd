@@ -18,6 +18,7 @@ var image: Image
 var image_size: Vector2
 var image_data: PoolByteArray
 var save_path: String
+var image_name: String
 
 var sprites := {}
 var current_being_created_uid := -1
@@ -218,6 +219,8 @@ func enable_sprites(on: bool) -> void:
 
 
 func add_history(dict: Dictionary) -> void:
+	if name == image_name:
+		name += "*"
 	while history.size() > history_index + 1:
 		history.pop_back()
 	history_index += 1
@@ -316,13 +319,14 @@ func init(path := "", d = null, sprite_data = null) -> bool:
 			return false
 	image_size = image.get_size()
 	image_data = image.get_data()
-	name = Util.remove_file_extension(path.get_file())
+	image_name = Util.remove_file_extension(path.get_file())
+	name = image_name
 	if path.ends_with(".spritter"):
 		save_path = path
 	var text := ImageTexture.new()
 	text.create_from_image(image, 0)
 	image_node.texture = text
-	tree_root.set_text(0, name)
+	tree_root.set_text(0, image_name)
 	zoom(0)
 	if sprite_data:
 		for dict in sprite_data:
@@ -350,10 +354,10 @@ func on_outline_selected(on: bool, outline: Button) -> void:
 
 func export_sprites(dir: String) -> void:
 	var directory := Directory.new()
-	if not directory.dir_exists(dir + "/%s" % name):
-		directory.make_dir(dir + "/%s" % name)
+	if not directory.dir_exists(dir + "/%s" % image_name):
+		directory.make_dir(dir + "/%s" % image_name)
 	for uid in sprites:
-		image.get_rect(sprites[uid].outline.get_rect()).save_png(dir + "/%s/%s.png" % [name, sprites[uid].name])
+		image.get_rect(sprites[uid].outline.get_rect()).save_png(dir + "/%s/%s.png" % [image_name, sprites[uid].name])
 
 
 func on_outside_sprite_gui_input(event: InputEvent) -> void:
