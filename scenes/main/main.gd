@@ -5,6 +5,7 @@ const Tab := preload("res://scenes/main/tab.tscn")
 
 var action := "edit_sprites"
 var file_action := ""
+var confirm_action := ""
 
 onready var top_buttons := $Layout/TopBar/Buttons
 onready var file_button := $"%FileButton"
@@ -41,6 +42,7 @@ func _ready() -> void:
 	Detect.connect("detecting_finished", self, "on_detecting_finished")
 	SaveLoad.connect("show_note", self, "show_note")
 	SaveLoad.connect("sheet_loaded", self, "on_sheet_loaded")
+	Pack.connect("show_note", self, "show_note")
 	
 	file_dialog.current_dir = OS.get_system_dir(OS.SYSTEM_DIR_PICTURES)
 	for child in file_dialog.get_children():
@@ -96,17 +98,11 @@ func _on_Label_meta_clicked(meta) -> void:
 
 
 func close_tab() -> void:
-	if tabs.get_child_count() == 1:
-		for i in select_button.get_popup().get_item_count():
-			sprite_button.get_popup().set_item_disabled(i, true)
-		for i in sprite_button.get_popup().get_item_count():
-			sprite_button.get_popup().set_item_disabled(i, true)
-		for i in export_button.get_popup().get_item_count():
-			export_button.get_popup().set_item_disabled(i, true)
-		file_button.get_popup().set_item_disabled(1, true)
-		file_button.get_popup().set_item_disabled(2, true)
-	tabs.get_child(tabs.current_tab).queue_free()
-
+	if tabs.get_child_count() == 0:
+		return
+	if tabs.get_current_tab_control().name.ends_with("*"):
+		confirm_action = "close_tab"
+		show_confirm("Unsaved work, close?")
 
 
 func on_menu_item_pressed(id: int, group: String) -> void:
@@ -121,6 +117,10 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 					show_file(FileDialog.MODE_SAVE_FILE, PoolStringArray(["*.spritter"]), "save")
 				3:
 					show_file(FileDialog.MODE_OPEN_FILE, PoolStringArray(["*.spritter"]), "load")
+				4:
+					$Pack.popup()
+				5:
+					show_file(FileDialog.MODE_SAVE_FILE, PoolStringArray(["*.png"]), "save_as")
 		"SelectButton":
 			match id:
 				0:
@@ -132,8 +132,7 @@ func on_menu_item_pressed(id: int, group: String) -> void:
 					recalc_cut(cut_rows.value, "Rows")
 					$Cut.popup()
 				1:
-					$Layout/ProgressBar.value = 0
-					Detect.detect(tabs.get_child(tabs.current_tab).image_size, tabs.get_child(tabs.current_tab).image_data)
+					$Detect.popup()
 		"ExportButton":
 			match id:
 				0:
@@ -195,6 +194,8 @@ func _on_FileDialog_file_selected(path: String) -> void:
 			SaveLoad.save_sheet(path, tab.image, tab.sprites)
 		"load":
 			SaveLoad.load_sheet(path)
+		"save_as":
+			tabs.get_current_tab_control().image.save_png(path)
 
 
 func show_confirm(message: String) -> void:
@@ -218,7 +219,7 @@ func _on_Tabs_tab_changed(tab: int) -> void:
 	change_zoom(tabs.get_child(tab).ZOOM_INTERVALS[tabs.get_child(tab).zoom_counter])
 
 
-func new_tab(path := "", image_data = null, sprite_data = null) -> void:
+func new_tab(path := "", image_data = null, sprite_data = null) -> Node:
 	for i in select_button.get_popup().get_item_count():
 		select_button.get_popup().set_item_disabled(i, false)
 	for i in sprite_button.get_popup().get_item_count():
@@ -227,18 +228,57 @@ func new_tab(path := "", image_data = null, sprite_data = null) -> void:
 		export_button.get_popup().set_item_disabled(i, false)
 	file_button.get_popup().set_item_disabled(1, false)
 	file_button.get_popup().set_item_disabled(2, false)
+	file_button.get_popup().set_item_disabled(5, false)
 	var tab := Tab.instance()
 	tabs.add_child(tab)
 	var result: bool = tab.init(path, image_data, sprite_data)
 	if not result:
 		tab.queue_free()
 		show_note("Error loading file!")
+		return tab
 	tab.action = action
 	tab.connect("show_file", self, "show_file")
 	tab.connect("close_tab", self, "close_tab")
 	tab.connect("zoom_changed", self, "change_zoom")
+	tabs.current_tab = tab.get_index()
+	return tab
 
 
 func _on_CutOk_pressed() -> void:
 	$Cut.hide()
 	tabs.get_current_tab_control().cut(Vector2(cut_x.value, cut_y.value))
+
+
+func _on_DetectOk_pressed() -> void:
+	$Detect.hide()
+	$Layout/ProgressBar.value = 0
+	Detect.detect(tabs.get_child(tabs.current_tab).image_size, tabs.get_child(tabs.current_tab).image_data, $Detect/VBoxContainer/HBoxContainer/Dist.value)
+
+
+func _on_FileDialog_files_selected(paths: PoolStringArray) -> void:
+	var result := Pack.pack(paths, $"%Constrain".selected, $"%MaxSize".value, $"%PaddingH".value, $"%PaddingV".value, $"%Color".color)
+	if result.empty():
+		return
+	var tab := new_tab(paths[0], result.data)
+	tab.display_sprites(result.all_rects, false)
+
+
+func _on_PackOk_pressed() -> void:
+	$Pack.hide()
+	show_file(FileDialog.MODE_OPEN_FILES, PoolStringArray(["*.png"]), "pack")
+
+
+func _on_Confirm_confirmed() -> void:
+	match confirm_action:
+		"close_tab":
+			if tabs.get_child_count() == 1:
+				for i in select_button.get_popup().get_item_count():
+					sprite_button.get_popup().set_item_disabled(i, true)
+				for i in sprite_button.get_popup().get_item_count():
+					sprite_button.get_popup().set_item_disabled(i, true)
+				for i in export_button.get_popup().get_item_count():
+					export_button.get_popup().set_item_disabled(i, true)
+				file_button.get_popup().set_item_disabled(1, true)
+				file_button.get_popup().set_item_disabled(2, true)
+				file_button.get_popup().set_item_disabled(5, true)
+			tabs.get_child(tabs.current_tab).queue_free()

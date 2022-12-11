@@ -20,6 +20,7 @@ Detect="*res://scenes/autoloads/detect.gd"
 Auto="*res://scenes/autoloads/auto.gd"
 SaveLoad="*res://scenes/autoloads/save_load.gd"
 Util="*res://scenes/autoloads/util.gd"
+Pack="*res://scenes/autoloads/pack.gd"
 
 [debug]
 

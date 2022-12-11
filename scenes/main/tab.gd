@@ -334,12 +334,13 @@ func init(path := "", d = null, sprite_data = null) -> bool:
 	return true
 
 
-func display_sprites(all_rects: Array) -> void:
+func display_sprites(all_rects: Array, add_to_history := true) -> void:
 	var uids := []
 	for rect in all_rects:
 		uids.append(make_sprite_outline(rect.position, rect.size, str(name_counter)))
 		name_counter += 1
-	on_outlines_created(uids)
+	if add_to_history:
+		on_outlines_created(uids)
 
 
 func on_outline_selected(on: bool, outline: Button) -> void:

@@ -10,7 +10,7 @@ var region_threads: Array
 var sub_region_count: int
 var threads_finished: int
 var all_rects: Array
-var bitmap_threshold := 0.1
+var max_sep: int
 
 
 func _ready() -> void:
@@ -26,8 +26,9 @@ func _exit_tree() -> void:
 			thread.wait_to_finish()
 
 
-func detect(image_size: Vector2, image_data: PoolByteArray) -> void:
+func detect(image_size: Vector2, image_data: PoolByteArray, ms: int) -> void:
 	all_rects = []
+	max_sep = ms
 	var y_size: int = ceil(image_size.y / sub_region_count)
 	var x_size: int = ceil(image_size.x / sub_region_count)
 	regions = []
@@ -122,7 +123,9 @@ func combine_boxes() -> void:
 	while i != -1:
 		var has_merged := false
 		for j in range(i - 1, -1, -1):
-			if all_rects[i].intersects(all_rects[j], true):
+			var grown_rect_i: Rect2 = all_rects[i].grow(max_sep)
+			var grown_rect_j: Rect2 = all_rects[j].grow(max_sep)
+			if grown_rect_i.intersects(grown_rect_j, true):
 				all_rects[i] = all_rects[i].merge(all_rects[j])
 				all_rects.remove(j)
 				has_merged = true
@@ -131,7 +134,9 @@ func combine_boxes() -> void:
 			i -= 1
 		else:
 			for j in range(i - 1, -1, -1):
-				if all_rects[i].intersects(all_rects[j], true):
+				var grown_rect_i: Rect2 = all_rects[i].grow(max_sep)
+				var grown_rect_j: Rect2 = all_rects[j].grow(max_sep)
+				if grown_rect_i.intersects(grown_rect_j, true):
 					all_rects[i] = all_rects[i].merge(all_rects[j])
 					all_rects.remove(j)
 					has_merged = true

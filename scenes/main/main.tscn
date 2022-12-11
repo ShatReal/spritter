@@ -46,7 +46,7 @@ unique_name_in_owner = true
 margin_right = 32.0
 margin_bottom = 23.0
 text = "File"
-items = [ "Open File", null, 0, false, false, 0, 0, null, "", false, "Close File", null, 0, false, true, 1, 0, null, "", false, "Save", null, 0, false, true, 2, 0, null, "", false, "Load", null, 0, false, false, 3, 0, null, "", false ]
+items = [ "Open File", null, 0, false, false, 0, 0, null, "", false, "Close File", null, 0, false, true, 1, 0, null, "", false, "Save", null, 0, false, true, 2, 0, null, "", false, "Load", null, 0, false, false, 3, 0, null, "", false, "Pack Sprites", null, 0, false, false, 4, 0, null, "", false, "Save As", null, 0, false, true, 5, 0, null, "", false ]
 switch_on_hover = true
 
 [node name="SelectButton" type="MenuButton" parent="Layout/TopBar/Buttons"]
@@ -274,91 +274,266 @@ margin_bottom = -2.0
 alignment = 1
 
 [node name="Top" type="HBoxContainer" parent="Cut/VBox"]
-margin_top = 108.0
-margin_right = 392.0
+margin_top = 109.0
+margin_right = 396.0
 margin_bottom = 132.0
 alignment = 1
 
 [node name="Label" type="Label" parent="Cut/VBox/Top"]
-margin_left = 71.0
-margin_top = 5.0
-margin_right = 104.0
-margin_bottom = 19.0
+margin_left = 25.0
+margin_top = 2.0
+margin_right = 64.0
+margin_bottom = 21.0
 text = "Rows"
 
 [node name="Rows" type="SpinBox" parent="Cut/VBox/Top"]
-margin_left = 108.0
-margin_right = 182.0
-margin_bottom = 24.0
+margin_left = 68.0
+margin_right = 184.0
+margin_bottom = 23.0
 min_value = 1.0
 max_value = 10000.0
 value = 1.0
 
 [node name="Label2" type="Label" parent="Cut/VBox/Top"]
-margin_left = 186.0
-margin_top = 5.0
-margin_right = 242.0
-margin_bottom = 19.0
+margin_left = 188.0
+margin_top = 2.0
+margin_right = 250.0
+margin_bottom = 21.0
 text = "Columns"
 
 [node name="Columns" type="SpinBox" parent="Cut/VBox/Top"]
-margin_left = 246.0
-margin_right = 320.0
-margin_bottom = 24.0
+margin_left = 254.0
+margin_right = 370.0
+margin_bottom = 23.0
 min_value = 1.0
 max_value = 10000.0
 value = 1.0
 
 [node name="Bottom" type="HBoxContainer" parent="Cut/VBox"]
 margin_top = 136.0
-margin_right = 392.0
-margin_bottom = 160.0
+margin_right = 396.0
+margin_bottom = 159.0
 alignment = 1
 
 [node name="Label" type="Label" parent="Cut/VBox/Bottom"]
-margin_left = 77.0
-margin_top = 5.0
-margin_right = 115.0
-margin_bottom = 19.0
+margin_left = 26.0
+margin_top = 2.0
+margin_right = 76.0
+margin_bottom = 21.0
 text = "Y-size"
 
 [node name="YSize" type="SpinBox" parent="Cut/VBox/Bottom"]
-margin_left = 119.0
-margin_right = 193.0
-margin_bottom = 24.0
+margin_left = 80.0
+margin_right = 196.0
+margin_bottom = 23.0
 min_value = 1.0
 value = 1.0
 
 [node name="Label2" type="Label" parent="Cut/VBox/Bottom"]
-margin_left = 197.0
-margin_top = 5.0
-margin_right = 236.0
-margin_bottom = 19.0
+margin_left = 200.0
+margin_top = 2.0
+margin_right = 250.0
+margin_bottom = 21.0
 text = "X-size"
 
 [node name="XSize" type="SpinBox" parent="Cut/VBox/Bottom"]
-margin_left = 240.0
-margin_right = 314.0
-margin_bottom = 24.0
+margin_left = 254.0
+margin_right = 370.0
+margin_bottom = 23.0
 min_value = 1.0
 value = 1.0
 
 [node name="CutOk" type="Button" parent="Cut/VBox"]
-margin_left = 181.0
-margin_top = 164.0
-margin_right = 211.0
-margin_bottom = 184.0
+margin_left = 187.0
+margin_top = 163.0
+margin_right = 208.0
+margin_bottom = 186.0
 size_flags_horizontal = 4
 text = "Ok"
 
 [node name="Confirm" type="ConfirmationDialog" parent="."]
-visible = true
-margin_right = 200.0
-margin_bottom = 70.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -100.0
+margin_top = -35.0
+margin_right = 100.0
+margin_bottom = 35.0
 resizable = true
+
+[node name="Detect" type="PopupPanel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -200.0
+margin_top = -150.0
+margin_right = 200.0
+margin_bottom = 150.0
+rect_min_size = Vector2( 400, 300 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Detect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = -2.0
+alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Detect/VBoxContainer"]
+margin_top = 123.0
+margin_right = 396.0
+margin_bottom = 146.0
+alignment = 1
+
+[node name="Label" type="Label" parent="Detect/VBoxContainer/HBoxContainer"]
+margin_left = 8.0
+margin_top = 2.0
+margin_right = 268.0
+margin_bottom = 21.0
+text = "Maximum Distance Between Tiles"
+
+[node name="Dist" type="SpinBox" parent="Detect/VBoxContainer/HBoxContainer"]
+margin_left = 272.0
+margin_right = 388.0
+margin_bottom = 23.0
+max_value = 1000.0
+
+[node name="DetectOk" type="Button" parent="Detect/VBoxContainer"]
+margin_left = 187.0
+margin_top = 150.0
+margin_right = 208.0
+margin_bottom = 173.0
+size_flags_horizontal = 4
+text = "Ok"
+
+[node name="Pack" type="PopupPanel" parent="."]
+visible = true
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -200.0
+margin_top = -150.0
+margin_right = 200.0
+margin_bottom = 150.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Pack"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = -2.0
+alignment = 1
+
+[node name="Constrain" type="OptionButton" parent="Pack/VBoxContainer"]
+unique_name_in_owner = true
+margin_top = 64.0
+margin_right = 396.0
+margin_bottom = 87.0
+text = "Constrain by Width"
+align = 1
+items = [ "Constrain by Width", null, false, 0, null, "Constrain by Height", null, false, 1, null ]
+selected = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Pack/VBoxContainer"]
+margin_top = 91.0
+margin_right = 396.0
+margin_bottom = 114.0
+alignment = 1
+
+[node name="Label" type="Label" parent="Pack/VBoxContainer/HBoxContainer"]
+margin_left = 103.0
+margin_top = 2.0
+margin_right = 173.0
+margin_bottom = 21.0
+text = "Max Size"
+
+[node name="MaxSize" type="SpinBox" parent="Pack/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+margin_left = 177.0
+margin_right = 293.0
+margin_bottom = 23.0
+min_value = 1.0
+max_value = 10000.0
+value = 1024.0
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Pack/VBoxContainer"]
+margin_top = 118.0
+margin_right = 396.0
+margin_bottom = 141.0
+alignment = 1
+
+[node name="Label" type="Label" parent="Pack/VBoxContainer/HBoxContainer2"]
+margin_left = 64.0
+margin_top = 2.0
+margin_right = 211.0
+margin_bottom = 21.0
+text = "Padding Horizontal"
+
+[node name="PaddingH" type="SpinBox" parent="Pack/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+margin_left = 215.0
+margin_right = 331.0
+margin_bottom = 23.0
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="Pack/VBoxContainer"]
+margin_top = 145.0
+margin_right = 396.0
+margin_bottom = 168.0
+alignment = 1
+
+[node name="Label" type="Label" parent="Pack/VBoxContainer/HBoxContainer4"]
+margin_left = 74.0
+margin_top = 2.0
+margin_right = 202.0
+margin_bottom = 21.0
+text = "Padding Vertical"
+
+[node name="PaddingV" type="SpinBox" parent="Pack/VBoxContainer/HBoxContainer4"]
+unique_name_in_owner = true
+margin_left = 206.0
+margin_right = 322.0
+margin_bottom = 23.0
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="Pack/VBoxContainer"]
+margin_top = 172.0
+margin_right = 396.0
+margin_bottom = 204.0
+alignment = 1
+
+[node name="Label" type="Label" parent="Pack/VBoxContainer/HBoxContainer3"]
+margin_left = 126.0
+margin_top = 6.0
+margin_right = 233.0
+margin_bottom = 25.0
+text = "Padding Color"
+
+[node name="Color" type="ColorPickerButton" parent="Pack/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+margin_left = 237.0
+margin_right = 269.0
+margin_bottom = 32.0
+rect_min_size = Vector2( 32, 32 )
+color = Color( 1, 1, 1, 0 )
+
+[node name="PackOk" type="Button" parent="Pack/VBoxContainer"]
+margin_left = 187.0
+margin_top = 208.0
+margin_right = 208.0
+margin_bottom = 231.0
+size_flags_horizontal = 4
+text = "Ok"
 
 [connection signal="tab_changed" from="Layout/Main/Tabs" to="." method="_on_Tabs_tab_changed"]
 [connection signal="dir_selected" from="FileDialog" to="." method="_on_FileDialog_dir_selected"]
 [connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
+[connection signal="files_selected" from="FileDialog" to="." method="_on_FileDialog_files_selected"]
 [connection signal="meta_clicked" from="Credits/Label" to="." method="_on_Label_meta_clicked"]
 [connection signal="pressed" from="Cut/VBox/CutOk" to="." method="_on_CutOk_pressed"]
+[connection signal="confirmed" from="Confirm" to="." method="_on_Confirm_confirmed"]
+[connection signal="pressed" from="Detect/VBoxContainer/DetectOk" to="." method="_on_DetectOk_pressed"]
+[connection signal="pressed" from="Pack/VBoxContainer/PackOk" to="." method="_on_PackOk_pressed"]
